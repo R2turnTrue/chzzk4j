@@ -1,5 +1,7 @@
 # chzzk4j
 
+![](https://jitpack.io/v/R2turnTrue/chzzk4j.svg)
+
 Unofficial Java API library of CHZZK (치지직, the video streaming service of Naver)
 
 * This library is not completed. Please contribute a lot through Pull-Request!
@@ -13,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.R2turnTrue:chzzk4j:<version>")
+    implementation("com.github.R2turnTrue:chzzk4j:<version>")
 }
 ```
 
