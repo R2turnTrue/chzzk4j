@@ -1,6 +1,7 @@
 plugins {
     id("java")
     `maven-publish`
+    `java-library`
 }
 
 group = "xyz.r2turntrue"
@@ -22,4 +23,39 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            artifactId = "chzzk4j"
+            groupId = "xyz.r2turntrue"
+            version = "1.0-SNAPSHOT"
+
+            from(components["java"])
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+
+
+            register("release", MavenPublication::class) {
+                groupId = "com.github.R2turnTrue"
+
+                artifactId = "chzzk4j"
+
+                version = "1.0.0"
+
+
+            }
+        }
+    }
 }
