@@ -9,13 +9,18 @@ Unofficial Java API library of CHZZK (치지직, the video streaming service of 
 
 ## installation
 
+* Please use the local maven repository until issue #1 is fixed. Sorry :(
+
+1. Clone the repository, and run `publishToMavenLocal`
+2. See below!
+
 ```kotlin
 repositories {
-    maven("https://jitpack.io")
+    mavenLocal()
 }
 
 dependencies {
-    implementation("com.github.R2turnTrue:chzzk4j:<version>")
+    implementation("xyz.r2turntrue:chzzk4j:1.0-SNAPSHOT")
 }
 ```
 
