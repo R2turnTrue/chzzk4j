@@ -58,7 +58,7 @@ public class ChatWebsocketClient extends WebSocketClient {
     private void processChatMessage(ChatMessage msg) {
         for (ChatEventListener listener : chat.listeners) {
             //System.out.println("CC: " + msg.chatTypeCode);
-            if (msg.chatTypeCode == WsMessageTypes.ChatTypes.DONATION)
+            if (msg.chatTypeCode == WsMessageTypes.ChatTypes.DONATION || msg.getExtras().getPayAmount() > 0)
                 listener.onDonationChat(msg);
             else
                 listener.onChat(msg);
