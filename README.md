@@ -1,6 +1,7 @@
 # chzzk4j
 
 ![](https://jitpack.io/v/R2turnTrue/chzzk4j.svg)
+[Example Minecraft Plugin](https://github.com/R2turnTrue/chzzk4j_demo)
 
 Unofficial Java API library of CHZZK (치지직, the video streaming service of Naver)
 
