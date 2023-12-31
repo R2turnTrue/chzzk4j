@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    implementation("xyz.r2turntrue:chzzk4j:1.0-SNAPSHOT")
+    implementation("io.github.R2turnTrue:chzzk4j:1.0-SNAPSHOT")
 }
 ```
 
