@@ -121,6 +121,11 @@ public class ChatWebsocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
+        chat.isConnectedToWebsocket = false;
+        for (ChatEventListener listener : chat.listeners) {
+            listener.onConnectionClosed(code, reason, remote);
+        }
+
         if (chat.chzzk.isDebug) {
             System.out.println("Websocket connection closed.");
             System.out.println("Code: " + code);
@@ -132,6 +137,18 @@ public class ChatWebsocketClient extends WebSocketClient {
     @Override
     public void onError(Exception ex) {
         ex.printStackTrace();
+    }
+
+    public void sendChat(String content) {
+        var msg = setupWsMessage(new WsMessageServerboundSendChat());
+        msg.sid = sid;
+        var extras = new WsMessageServerboundSendChat.Body.Extras();
+        extras.streamingChannelId = chat.channelId;
+        msg.bdy.extras = gson.toJson(extras);
+        msg.bdy.msg = content;
+        msg.bdy.msgTypeCode = WsMessageTypes.ChatTypes.TEXT;
+
+        send(gson.toJson(msg));
     }
 
     public void requestRecentChat(int chatCount) {

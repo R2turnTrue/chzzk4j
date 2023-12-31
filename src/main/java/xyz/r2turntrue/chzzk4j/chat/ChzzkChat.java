@@ -1,7 +1,5 @@
 package xyz.r2turntrue.chzzk4j.chat;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import xyz.r2turntrue.chzzk4j.Chzzk;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
@@ -11,12 +9,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.AlreadyConnectedException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class ChzzkChat {
     Chzzk chzzk;
 
-    private boolean isConnected = false;
+    boolean isConnectedToWebsocket = false;
     private ChatWebsocketClient client;
     ArrayList<ChatEventListener> listeners = new ArrayList<>();
 
@@ -34,7 +31,19 @@ public class ChzzkChat {
     }
 
     public void requestRecentChat(int chatCount) {
+        if (!isConnectedToWebsocket) {
+            throw new IllegalStateException("Connect to request recent chats!");
+        }
+
         client.requestRecentChat(chatCount);
+    }
+
+    public void sendChat(String content) {
+        if (!isConnectedToWebsocket) {
+            throw new IllegalStateException("Connect to send chat!");
+        }
+
+        client.sendChat(content);
     }
 
     public void connectFromChannelId(String channelId) throws IOException {
@@ -48,11 +57,11 @@ public class ChzzkChat {
     }
 
     void connectFromChatId(String channelId, String chatId) throws IOException {
-        if (isConnected) {
+        if (isConnectedToWebsocket) {
             throw new AlreadyConnectedException();
         }
 
-        isConnected = true;
+        isConnectedToWebsocket = true;
 
         this.channelId = channelId;
         this.chatId = chatId;
@@ -87,11 +96,11 @@ public class ChzzkChat {
     }
 
     public void close() {
-        if (!isConnected) {
+        if (!isConnectedToWebsocket) {
             throw new IllegalStateException("Not connected!");
         }
 
         client.close();
-        isConnected = false;
+        isConnectedToWebsocket = false;
     }
 }

@@ -48,11 +48,13 @@ ChzzkChannelRules rules = chzzk.getChannelChatRules("7ce8032370ac5121dcabce7bad3
 System.out.println(rules.getRule())
 ```
 
-### connecting to chats (readonly)
+### connecting to chats (read)
 ```java
-ChzzkChat chat = loginChzzk.chat();
+ChzzkChat chat = chzzk.chat();
 // Connect from channel ID
 chat.connectFromChannelId("b2665a30ba249486bf2c134973cfc7a2");
+
+// ** WARNING: the events will be emitted from the other thread!
 chat.addListener(new ChatEventListener() {
     @Override
     public void onConnect() {
@@ -74,16 +76,34 @@ Thread.sleep(500000);
 chat.close();
 ```
 
+### connecting to chats (send)
+```java
+// chzzk need to be logged-in
+ChzzkChat chat = chzzk.chat();
+// Connect from channel ID
+chat.connectFromChannelId("b2665a30ba249486bf2c134973cfc7a2");
+
+// ** WARNING: the events will be emitted from the other thread!
+chat.addListener(new ChatEventListener() {
+    @Override
+    public void onConnect() {
+        System.out.println("Connect received!");
+        chat.sendChat("안녕하세요!");
+    }
+});
+Thread.sleep(5000);
+chat.close();
+```
+
 ## features
 
 - [x] get channel information & rules
 - [x] get current user's information
 - [x] get channel followed status
-- [x] chat integration (read) **(experimental)**
+- [x] chat integration (read/send) **(experimental)**
 
 ### need to implement
 
-- [ ] chat integration (write)
 - [ ] parse emoji from chat message
 - [ ] get following channels of user that logged in
 - [ ] get video information
