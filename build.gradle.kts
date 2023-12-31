@@ -34,10 +34,26 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             artifactId = "chzzk4j"
-            groupId = "com.github.R2turnTrue"
+            groupId = "io.github.R2turnTrue"
             version = "1.0-SNAPSHOT"
 
             from(components["java"])
+
+            repositories {
+                maven {
+                    name = "MavenCentral"
+                    val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                    val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                    url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+
+                    credentials.runCatching {
+                        val nexusUsername: String by project
+                        val nexusPassword: String by project
+                        username = nexusUsername
+                        password = nexusPassword
+                    }
+                }
+            }
 
             pom {
                 name = "chzzk4j"
@@ -73,7 +89,7 @@ afterEvaluate {
 
 
             register("release", MavenPublication::class) {
-                groupId = "com.github.R2turnTrue"
+                groupId = "io.github.R2turnTrue"
 
                 artifactId = "chzzk4j"
 
