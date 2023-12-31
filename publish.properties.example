@@ -1,0 +1,6 @@
+signing.keyId=KEY ID
+signing.password=SIGNING PASSWORD
+signing.secretKeyRingFile=.gradle/secring.gpg
+
+nexusUsername=NEXUS USERNAME
+nexusPassword=NEXUS PASSWORD

@@ -39,3 +39,4 @@ bin/
 .DS_Store
 
 env.properties
+publish.properties

@@ -1,11 +1,25 @@
+import java.io.BufferedInputStream
+import java.io.InputStream
+import java.lang.IllegalStateException
+import java.util.Properties
+
 plugins {
     id("java")
     `maven-publish`
     `java-library`
+    signing
 }
 
 group = "io.github.R2turnTrue"
-version = "1.0-SNAPSHOT"
+version = "0.0.1"
+
+val publishProps = Properties()
+publishProps.load(
+    File("publish.properties").inputStream())
+
+ext["signing.keyId"] = publishProps["signing.keyId"]
+ext["signing.password"] = publishProps["signing.password"]
+ext["signing.secretKeyRingFile"] = publishProps["signing.secretKeyRingFile"]
 
 repositories {
     mavenCentral()
@@ -32,10 +46,11 @@ java {
 
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
+        create<MavenPublication>(rootProject.name) {
             artifactId = "chzzk4j"
             groupId = "io.github.R2turnTrue"
-            version = "1.0-SNAPSHOT"
+
+            version = "0.0.1"
 
             from(components["java"])
 
@@ -43,14 +58,13 @@ publishing {
                 maven {
                     name = "MavenCentral"
                     val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-                    val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                    url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+                    //val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                    //url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
+                    url = uri(releasesRepoUrl)
 
                     credentials.runCatching {
-                        val nexusUsername: String by project
-                        val nexusPassword: String by project
-                        username = nexusUsername
-                        password = nexusPassword
+                        username = publishProps["nexusUsername"] as String
+                        password = publishProps["nexusPassword"] as String
                     }
                 }
             }
@@ -83,20 +97,7 @@ publishing {
     }
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-
-
-            register("release", MavenPublication::class) {
-                groupId = "io.github.R2turnTrue"
-
-                artifactId = "chzzk4j"
-
-                version = "1.0.0"
-
-
-            }
-        }
-    }
+signing {
+    isRequired = true
+    sign(publishing.publications[rootProject.name])
 }
