@@ -17,23 +17,30 @@ public class RawApiUtils {
                 .get();
     }
 
-    public static JsonObject getRawJson(OkHttpClient httpClient, Request request) throws IOException {
+    public static JsonObject getRawJson(OkHttpClient httpClient, Request request, boolean isDebug) throws IOException {
         Response response = httpClient.newCall(request).execute();
 
         if (response.isSuccessful()) {
             ResponseBody body = response.body();
             assert body != null;
             String bodyString = body.string();
-            //System.out.println("BD: " + bodyString);
+            //\System.out.println("BD: " + bodyString);
 
             return JsonParser.parseString(bodyString).getAsJsonObject();
         } else {
             System.err.println(response);
+            if (isDebug) {
+                ResponseBody body = response.body();
+                if (body != null) {
+                    String bodyString = body.string();
+                    System.out.println("BD: " + bodyString);
+                }
+            }
             throw new IOException("Response was not successful!");
         }
     }
 
-    public static JsonElement getContentJson(OkHttpClient httpClient, Request request) throws IOException {
-        return getRawJson(httpClient, request).get("content");
+    public static JsonElement getContentJson(OkHttpClient httpClient, Request request, boolean isDebug) throws IOException {
+        return getRawJson(httpClient, request, isDebug).get("content");
     }
 }

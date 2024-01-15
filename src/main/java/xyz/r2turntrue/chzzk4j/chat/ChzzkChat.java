@@ -48,7 +48,7 @@ public class ChzzkChat {
 
     public void connectFromChannelId(String channelId) throws IOException {
         String chatId = RawApiUtils.getContentJson(chzzk.getHttpClient(),
-                RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v1/channels/" + channelId + "/live-detail").build())
+                RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
                 .getAsJsonObject()
                 .get("chatChannelId")
                 .getAsString();
@@ -78,7 +78,8 @@ public class ChzzkChat {
                 "&chatType=STREAMING";
         accessToken = RawApiUtils.getContentJson(
                 chzzk.getHttpClient(),
-                RawApiUtils.httpGetRequest(accessTokenUrl).build()
+                RawApiUtils.httpGetRequest(accessTokenUrl).build(),
+                chzzk.isDebug
         ).getAsJsonObject().get("accessToken").getAsString();
 
         int serverId = 0;

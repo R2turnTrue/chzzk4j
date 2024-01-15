@@ -83,7 +83,8 @@ public class Chzzk {
     public ChzzkChannel getChannel(String channelId) throws IOException, ChannelNotExistsException {
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId).build());
+                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId).build(),
+                isDebug);
 
         ChzzkChannel channel = gson.fromJson(
                 contentJson,
@@ -107,7 +108,8 @@ public class Chzzk {
     public ChzzkChannelRules getChannelChatRules(String channelId) throws IOException, NotExistsException {
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/chat-rules").build());
+                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/chat-rules").build(),
+                isDebug);
 
         ChzzkChannelRules rules = gson.fromJson(
                 contentJson,
@@ -136,7 +138,8 @@ public class Chzzk {
 
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/follow").build());
+                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/follow").build(),
+                isDebug);
 
         ChzzkFollowingStatusResponse followingDataResponse = gson.fromJson(
                 contentJson,
@@ -163,7 +166,8 @@ public class Chzzk {
 
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,
-                RawApiUtils.httpGetRequest(GAME_API_URL + "/v1/user/getUserStatus").build());
+                RawApiUtils.httpGetRequest(GAME_API_URL + "/v1/user/getUserStatus").build(),
+                isDebug);
 
         ChzzkUser user = gson.fromJson(
                 contentJson,

@@ -12,12 +12,13 @@ public class ChatTest extends ChzzkTestBase {
     @Test
     void testingChat() throws IOException, InterruptedException {
         ChzzkChat chat = loginChzzk.chat();
-        chat.connectFromChannelId("ec94e63170d15e8e8d5eff72ca69c1a7");
+        loginChzzk.isDebug = true;
+        chat.connectFromChannelId("bb382c2c0cc9fa7c86ab3b037fb5799c");
         chat.addListener(new ChatEventListener() {
             @Override
             public void onConnect() {
                 System.out.println("Connect received!");
-                chat.sendChat("ㅋㅋㅋㅋ");
+                //chat.sendChat("ㅋㅋㅋㅋ");
                 chat.requestRecentChat(50);
             }
 

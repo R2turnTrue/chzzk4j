@@ -21,5 +21,8 @@ public class ChzzkTestBase {
         currentUserId = properties.getProperty("CURRENT_USER_ID");
         chzzk = new ChzzkBuilder().build();
         loginChzzk = new ChzzkBuilder(properties.getProperty("NID_AUT"), properties.getProperty("NID_SES")).build();
+
+        chzzk.isDebug = true;
+        loginChzzk.isDebug = true;
     }
 }
