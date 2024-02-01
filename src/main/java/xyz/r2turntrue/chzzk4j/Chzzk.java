@@ -13,6 +13,7 @@ import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollowingData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelRules;
+import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
@@ -150,6 +151,25 @@ public class Chzzk {
         }
 
         return followingDataResponse.channel.getPersonalData().getFollowing();
+    }
+
+    /**
+     * Get {@link ChzzkRecommendationChannels}
+     *
+     * @return recommendation channels - {@link ChzzkRecommendationChannels}
+     * @throws IOException if the request to API failed
+     */
+    public ChzzkRecommendationChannels getRecommendationChannels() throws IOException {
+        JsonElement contentJson = RawApiUtils.getContentJson(
+                httpClient,
+                RawApiUtils.httpGetRequest(API_URL + "/service/v1/home/recommendation-channels").build(),
+                isDebug);
+
+        ChzzkRecommendationChannels channels = gson.fromJson(
+                contentJson,
+                ChzzkRecommendationChannels.class);
+
+        return channels;
     }
 
     /**

@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Assertions;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollowingData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelRules;
+import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
 
 // 8e7a6f0a0b1f0612afee1a673e94027d - 레고칠칠
 // c2186ca6edb3a663f137b15ed7346fac - 리얼진짜우왁굳
@@ -89,5 +90,11 @@ public class ChannelApiTest extends ChzzkTestBase {
         ChzzkUser currentUser = loginChzzk.getLoggedUser();
         System.out.println(currentUser);
         Assertions.assertEquals(currentUser.getUserId(), currentUserId);
+    }
+
+    @Test
+    void gettingRecommendationChannels() throws IOException, NotLoggedInException {
+        ChzzkRecommendationChannels channels = loginChzzk.getRecommendationChannels();
+        System.out.println(channels);
     }
 }

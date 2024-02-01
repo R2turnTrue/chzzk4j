@@ -102,14 +102,15 @@ chat.close();
 - [x] get channel information & rules
 - [x] get current user's information
 - [x] get channel followed status
-- [x] chat integration (read/send) **(experimental)**
+- [x] chat integration (read/send)
+- [x] get recommendation channels
 
 ### need to implement
 
+- [ ] fix invalid json (chat)
 - [ ] parse emoji from chat message
 - [ ] get following channels of user that logged in
 - [ ] get video information
 - [ ] get live status
 - [ ] get live detail
-- [ ] get recommendation channels
 - [ ] get cheese ranking
