@@ -74,7 +74,7 @@ public class ChzzkChat {
         }
 
         String accessTokenUrl = Chzzk.GAME_API_URL +
-                "/2/chats/access-token?channelId=" + chatId +
+                "/v2/chats/access-token?channelId=" + chatId +
                 "&chatType=STREAMING";
         accessToken = RawApiUtils.getContentJson(
                 chzzk.getHttpClient(),
