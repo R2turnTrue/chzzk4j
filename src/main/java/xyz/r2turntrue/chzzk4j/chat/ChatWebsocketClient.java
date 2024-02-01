@@ -51,7 +51,6 @@ public class ChatWebsocketClient extends WebSocketClient {
         handshake.bdy.auth = chat.chzzk.isLoggedIn() ? "SEND" : "READ";
         handshake.bdy.uid = chat.userId;
 
-        //System.out.println(gson.toJson(handshake));
         this.send(gson.toJson(handshake));
     }
 
@@ -91,6 +90,10 @@ public class ChatWebsocketClient extends WebSocketClient {
                 throw new ChatFailedConnectException(msg.retCode, msg.retMsg);
             }
         } else if (cmdId == WsMessageTypes.Commands.PING) {
+            if (chat.chzzk.isDebug) {
+                System.out.println("pong");
+                System.out.println(gson.toJson(new WsMessageServerboundPong()));
+            }
             this.send(gson.toJson(new WsMessageServerboundPong()));
         } else if (messageClass == WsMessageClientboundRecentChat.class) {
 

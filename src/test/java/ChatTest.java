@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ChatTest extends ChzzkTestBase {
     @Test
     void testingChat() throws IOException, InterruptedException {
-        ChzzkChat chat = loginChzzk.chat();
-        loginChzzk.isDebug = true;
-        chat.connectFromChannelId("bb382c2c0cc9fa7c86ab3b037fb5799c");
+        ChzzkChat chat = chzzk.chat();
+        chzzk.isDebug = true;
+        chat.connectFromChannelId("0b33823ac81de48d5b78a38cdbc0ab94");
         chat.addListener(new ChatEventListener() {
             @Override
             public void onConnect() {
