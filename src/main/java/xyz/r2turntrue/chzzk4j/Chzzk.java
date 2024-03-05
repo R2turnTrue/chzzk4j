@@ -17,6 +17,7 @@ import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationCh
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class Chzzk {
     public static String API_URL = "https://api.chzzk.naver.com";
@@ -51,6 +52,15 @@ public class Chzzk {
                 return chain.proceed(authorized);
             });
         }
+
+        httpBuilder.addInterceptor(chain -> {
+            Request original = chain.request();
+            Request authorized = original.newBuilder()
+                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0")
+                    .build();
+
+            return chain.proceed(authorized);
+        });
 
         httpClient = httpBuilder.build();
     }

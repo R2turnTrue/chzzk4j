@@ -1,9 +1,12 @@
+import com.google.gson.Gson;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import xyz.r2turntrue.chzzk4j.Chzzk;
 import xyz.r2turntrue.chzzk4j.chat.ChatEventListener;
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage;
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
+import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -13,7 +16,10 @@ public class ChatTest extends ChzzkTestBase {
     void testingChat() throws IOException, InterruptedException {
         ChzzkChat chat = chzzk.chat();
         chzzk.isDebug = true;
-        chat.connectFromChannelId("0b33823ac81de48d5b78a38cdbc0ab94");
+
+        System.out.println(new Gson().toJson(RawApiUtils.getContentJson(chzzk.getHttpClient(),
+                RawApiUtils.httpGetRequest("https://api.chzzk.naver.com/service/v2/channels/dc7fb0d085cfbbe90e11836e3b85b784/live-detail").build(), chzzk.isDebug)));
+        chat.connectFromChannelId("dc7fb0d085cfbbe90e11836e3b85b784");
         chat.addListener(new ChatEventListener() {
             @Override
             public void onConnect() {
