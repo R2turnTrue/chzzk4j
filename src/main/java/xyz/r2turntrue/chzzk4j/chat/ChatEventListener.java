@@ -8,4 +8,6 @@ public interface ChatEventListener {
     default void onChat(ChatMessage msg) {}
 
     default void onDonationChat(ChatMessage msg) {}
+
+    default void onSubscriptionChat(ChatMessage msg) {}
 }

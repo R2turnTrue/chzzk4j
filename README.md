@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.R2turnTrue:chzzk4j:0.0.4")
+    implementation("io.github.R2turnTrue:chzzk4j:0.0.5")
 }
 ```
 
@@ -66,11 +66,21 @@ chat.addListener(new ChatEventListener() {
 
     @Override
     public void onChat(ChatMessage msg) {
+        if (msg.getProfile() == null) {
+            System.out.println("[Chat] Anonymous: " + msg.getContent());
+            return;
+        }
+        
         System.out.println("[Chat] " + msg.getProfile().getNickname() + ": " + msg.getContent());
     }
 
     @Override
     public void onDonationChat(ChatMessage msg) {
+        if (msg.getProfile() == null) {
+            System.out.println("[Chat] Anonymous: " + msg.getContent());
+            return;
+        }
+        
         System.out.println("[Donation] " + msg.getProfile().getNickname() + ": " + msg.getContent() + " [" + msg.getExtras().getPayAmount() + "원]");
     }
 });
@@ -104,10 +114,10 @@ chat.close();
 - [x] get channel followed status
 - [x] chat integration (read/send)
 - [x] get recommendation channels
+- [x] fix invalid json (chat)
 
 ### need to implement
 
-- [ ] fix invalid json (chat)
 - [ ] parse emoji from chat message
 - [ ] get following channels of user that logged in
 - [ ] get video information

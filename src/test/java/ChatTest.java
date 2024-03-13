@@ -19,7 +19,7 @@ public class ChatTest extends ChzzkTestBase {
 
         System.out.println(new Gson().toJson(RawApiUtils.getContentJson(chzzk.getHttpClient(),
                 RawApiUtils.httpGetRequest("https://api.chzzk.naver.com/service/v2/channels/dc7fb0d085cfbbe90e11836e3b85b784/live-detail").build(), chzzk.isDebug)));
-        chat.connectFromChannelId("dc7fb0d085cfbbe90e11836e3b85b784");
+        chat.connectFromChannelId("7ce8032370ac5121dcabce7bad375ced");
         chat.addListener(new ChatEventListener() {
             @Override
             public void onConnect() {
@@ -30,11 +30,21 @@ public class ChatTest extends ChzzkTestBase {
 
             @Override
             public void onChat(ChatMessage msg) {
+                if (msg.getProfile() == null) {
+                    System.out.println("[Chat] 익명: " + msg.getContent());
+                    return;
+                }
+
                 System.out.println("[Chat] " + msg.getProfile().getNickname() + ": " + msg.getContent());
             }
 
             @Override
             public void onDonationChat(ChatMessage msg) {
+                if (msg.getProfile() == null) {
+                    System.out.println("[Chat] 익명: " + msg.getContent());
+                    return;
+                }
+
                 System.out.println("[Donation] " + msg.getProfile().getNickname() + ": " + msg.getContent() + " [" + msg.getExtras().getPayAmount() + "원]");
             }
         });

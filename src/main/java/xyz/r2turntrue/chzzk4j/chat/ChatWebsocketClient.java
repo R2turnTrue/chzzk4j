@@ -59,6 +59,8 @@ public class ChatWebsocketClient extends WebSocketClient {
             //System.out.println("CC: " + msg.chatTypeCode);
             if (msg.chatTypeCode == WsMessageTypes.ChatTypes.DONATION || msg.getExtras().getPayAmount() > 0)
                 listener.onDonationChat(msg);
+            else if (msg.chatTypeCode == WsMessageTypes.ChatTypes.SUBSCRIPTION)
+                listener.onSubscriptionChat(msg);
             else
                 listener.onChat(msg);
         }
@@ -104,11 +106,7 @@ public class ChatWebsocketClient extends WebSocketClient {
             }
 
         } else if (cmdId == WsMessageTypes.Commands.CHAT ||
-                cmdId == WsMessageTypes.Commands.DONATION ||
-                cmdId == WsMessageTypes.Commands.NOTICE || // ??
-                cmdId == WsMessageTypes.Commands.BLIND || // ??
-                cmdId == WsMessageTypes.Commands.PENALTY || // ??
-                cmdId == WsMessageTypes.Commands.EVENT) { // ??
+                cmdId == WsMessageTypes.Commands.DONATION) {
 
             WsMessageClientboundChat msg = gson.fromJson(parsedMessage, WsMessageClientboundChat.class);
 

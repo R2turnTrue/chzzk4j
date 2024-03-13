@@ -1,5 +1,7 @@
 package xyz.r2turntrue.chzzk4j.chat;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Date;
 
 public class ChatMessage {
@@ -12,12 +14,23 @@ public class ChatMessage {
 
         int payAmount = -1;
 
+        int month = 0;
+        String tierName = "";
+
         public String getOsType() {
             return osType;
         }
 
         public int getPayAmount() {
             return payAmount;
+        }
+
+        public int getSubscriptionMonth() {
+            return month;
+        }
+
+        public String getSubscriptionTierName() {
+            return tierName;
         }
 
         @Override
@@ -89,6 +102,11 @@ public class ChatMessage {
         return extras;
     }
 
+    /**
+     * Returns profile of sender of the message.
+     * @return nullable {@link Profile}
+     */
+    @Nullable
     public Profile getProfile() {
         return profile;
     }
