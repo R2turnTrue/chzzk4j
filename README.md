@@ -65,23 +65,38 @@ chat.addListener(new ChatEventListener() {
     }
 
     @Override
+    public void onError(Exception ex) {
+        ex.printStackTrace();
+    }
+
+    @Override
     public void onChat(ChatMessage msg) {
         if (msg.getProfile() == null) {
             System.out.println("[Chat] Anonymous: " + msg.getContent());
             return;
         }
-        
+
         System.out.println("[Chat] " + msg.getProfile().getNickname() + ": " + msg.getContent());
     }
 
     @Override
-    public void onDonationChat(ChatMessage msg) {
+    public void onDonationChat(DonationMessage msg) {
         if (msg.getProfile() == null) {
-            System.out.println("[Chat] Anonymous: " + msg.getContent());
+            System.out.println("[Donation] Anonymous: " + msg.getContent() + ": " + msg.getContent() + " [" + msg.getPayAmount() + "원]");
             return;
         }
-        
-        System.out.println("[Donation] " + msg.getProfile().getNickname() + ": " + msg.getContent() + " [" + msg.getExtras().getPayAmount() + "원]");
+
+        System.out.println("[Donation] " + msg.getProfile().getNickname() + ": " + msg.getContent() + " [" + msg.getPayAmount() + "원]");
+    }
+
+    @Override
+    public void onSubscriptionChat(SubscriptionMessage msg) {
+        if (msg.getProfile() == null) {
+            System.out.println("[Subscription] Anonymous: [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
+            return;
+        }
+
+        System.out.println("[Subscription] " + msg.getProfile().getNickname() + ": [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
     }
 });
 Thread.sleep(500000);

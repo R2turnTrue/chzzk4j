@@ -7,6 +7,7 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import xyz.r2turntrue.chzzk4j.exception.ChatFailedConnectException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.HashMap;
 
@@ -57,10 +58,10 @@ public class ChatWebsocketClient extends WebSocketClient {
     private void processChatMessage(ChatMessage msg) {
         for (ChatEventListener listener : chat.listeners) {
             //System.out.println("CC: " + msg.chatTypeCode);
-            if (msg.chatTypeCode == WsMessageTypes.ChatTypes.DONATION || msg.getExtras().getPayAmount() > 0)
-                listener.onDonationChat(msg);
-            else if (msg.chatTypeCode == WsMessageTypes.ChatTypes.SUBSCRIPTION)
-                listener.onSubscriptionChat(msg);
+            if (msg.msgTypeCode == WsMessageTypes.ChatTypes.DONATION || msg.getExtras().getPayAmount() > 0)
+                listener.onDonationChat((DonationMessage) msg);
+            else if (msg.msgTypeCode == WsMessageTypes.ChatTypes.SUBSCRIPTION)
+                listener.onSubscriptionChat((SubscriptionMessage) msg);
             else
                 listener.onChat(msg);
         }
@@ -68,55 +69,88 @@ public class ChatWebsocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        if (chat.chzzk.isDebug) System.out.println("Message: " + message);
 
-        JsonObject parsedMessage = JsonParser.parseString(message)
-                .getAsJsonObject();
+        try {
 
-        var cmdId = parsedMessage
-                .get("cmd")
-                .getAsInt();
+            if (chat.chzzk.isDebug) System.out.println("Message: " + message);
 
-        var messageClass = getClientboundMessageClass(cmdId);
+            JsonObject parsedMessage = JsonParser.parseString(message)
+                    .getAsJsonObject();
 
-        if (messageClass == WsMessageClientboundConnected.class) {
-            // handle connected message
-            WsMessageClientboundConnected msg = gson.fromJson(parsedMessage, WsMessageClientboundConnected.class);
-            if (msg.retCode == 0) {
-                if (chat.chzzk.isDebug) System.out.println("Successfully connected!");
-                sid = msg.bdy.sid;
-                for(ChatEventListener listener : chat.listeners) {
-                    listener.onConnect();
+            var cmdId = parsedMessage
+                    .get("cmd")
+                    .getAsInt();
+
+            var messageClass = getClientboundMessageClass(cmdId);
+
+            if (messageClass == WsMessageClientboundConnected.class) {
+                // handle connected message
+                WsMessageClientboundConnected msg = gson.fromJson(parsedMessage, WsMessageClientboundConnected.class);
+                if (msg.retCode == 0) {
+                    if (chat.chzzk.isDebug) System.out.println("Successfully connected!");
+                    sid = msg.bdy.sid;
+                    for (ChatEventListener listener : chat.listeners) {
+                        listener.onConnect();
+                    }
+                } else {
+                    throw new ChatFailedConnectException(msg.retCode, msg.retMsg);
                 }
-            } else {
-                throw new ChatFailedConnectException(msg.retCode, msg.retMsg);
+            } else if (cmdId == WsMessageTypes.Commands.PING) {
+                if (chat.chzzk.isDebug) {
+                    System.out.println("pong");
+                    System.out.println(gson.toJson(new WsMessageServerboundPong()));
+                }
+                this.send(gson.toJson(new WsMessageServerboundPong()));
+            } else if (messageClass == WsMessageClientboundRecentChat.class) {
+
+                WsMessageClientboundRecentChat msg = gson.fromJson(parsedMessage, WsMessageClientboundRecentChat.class);
+
+                for (WsMessageClientboundRecentChat.Body.RecentChat chat : msg.bdy.messageList) {
+                    Class<? extends ChatMessage> clazz = ChatMessage.class;
+
+                    if (chat.messageTypeCode == WsMessageTypes.ChatTypes.DONATION) {
+                        clazz = DonationMessage.class;
+                    } else if (chat.messageTypeCode == WsMessageTypes.ChatTypes.SUBSCRIPTION) {
+                        clazz = SubscriptionMessage.class;
+                    }
+
+                    try {
+                        processChatMessage(chat.toChatMessage(clazz));
+                    } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+            } else if (cmdId == WsMessageTypes.Commands.CHAT ||
+                    cmdId == WsMessageTypes.Commands.DONATION) {
+
+                WsMessageClientboundChat msg = gson.fromJson(parsedMessage, WsMessageClientboundChat.class);
+
+                //System.out.println(msg.bdy.length);
+
+                for (WsMessageClientboundChat.Chat chat : msg.bdy) {
+                    Class<? extends ChatMessage> clazz = ChatMessage.class;
+
+                    if (chat.msgTypeCode == WsMessageTypes.ChatTypes.DONATION) {
+                        clazz = DonationMessage.class;
+                    } else if (chat.msgTypeCode == WsMessageTypes.ChatTypes.SUBSCRIPTION) {
+                        clazz = SubscriptionMessage.class;
+                    }
+
+                    try {
+                        processChatMessage(chat.toChatMessage(clazz));
+                    } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
+                        throw new RuntimeException(e);
+                    }
+                    //System.out.println(chat.toChatMessage());
+                }
+
             }
-        } else if (cmdId == WsMessageTypes.Commands.PING) {
-            if (chat.chzzk.isDebug) {
-                System.out.println("pong");
-                System.out.println(gson.toJson(new WsMessageServerboundPong()));
+
+        } catch (Exception ex) {
+            for (ChatEventListener listener : chat.listeners) {
+                listener.onError(ex);
             }
-            this.send(gson.toJson(new WsMessageServerboundPong()));
-        } else if (messageClass == WsMessageClientboundRecentChat.class) {
-
-            WsMessageClientboundRecentChat msg = gson.fromJson(parsedMessage, WsMessageClientboundRecentChat.class);
-
-            for (WsMessageClientboundRecentChat.Body.RecentChat chat : msg.bdy.messageList) {
-                processChatMessage(chat.toChatMessage());
-            }
-
-        } else if (cmdId == WsMessageTypes.Commands.CHAT ||
-                cmdId == WsMessageTypes.Commands.DONATION) {
-
-            WsMessageClientboundChat msg = gson.fromJson(parsedMessage, WsMessageClientboundChat.class);
-
-            //System.out.println(msg.bdy.length);
-
-            for (WsMessageClientboundChat.Chat chat : msg.bdy) {
-                processChatMessage(chat.toChatMessage());
-                //System.out.println(chat.toChatMessage());
-            }
-
         }
     }
 
@@ -137,7 +171,9 @@ public class ChatWebsocketClient extends WebSocketClient {
 
     @Override
     public void onError(Exception ex) {
-        ex.printStackTrace();
+        for (ChatEventListener listener : chat.listeners) {
+            listener.onError(ex);
+        }
     }
 
     public void sendChat(String content) {
