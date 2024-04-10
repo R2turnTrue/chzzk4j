@@ -17,20 +17,29 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.R2turnTrue:chzzk4j:0.0.6")
+    implementation("io.github.R2turnTrue:chzzk4j:0.0.7")
 }
 ```
 
 ## examples
 ### initializing
 ```java
+// Debug Mode (Enables debug logs of System.out)
+Chzzk chzzk = new ChzzkBuilder()
+        .withDebugMode()
+        .build();
+
 // Unauthorized CHZZK (Anonymous)
 Chzzk chzzk = new ChzzkBuilder().build();
 
+// You can get values of NID_AUT and NID_SES from developer tools of your browser.
+// In Chrome, you can see the values from
+// Application > Cookies > https://chzzk.naver.com
+
 // Authorized CHZZK
-Chzzk chzzk = new ChzzkBuilder(
-        "value of NID_AUT cookie",
-        "value of NID_SES cookie").build();
+Chzzk chzzk = new ChzzkBuilder()
+                .withAuthorization(NID_AUT, NID_SES)
+                .build();
 ```
 
 ### get information of logged-in user
@@ -47,79 +56,86 @@ ChzzkChannelRules rules = channel.getRules(chzzk);
 // or
 ChzzkChannelRules rules = chzzk.getChannelChatRules("7ce8032370ac5121dcabce7bad375ced");
 
-System.out.println(rules.getRule())
+System.out.println(rules.getRule());
 ```
 
 ### connecting to chats (read)
 ```java
-ChzzkChat chat = chzzk.chat();
-// Connect from channel ID
-chat.connectFromChannelId("b2665a30ba249486bf2c134973cfc7a2");
+ChzzkChat chat = chzzk.chat("7f148028d1b8b3feab3a5442badded46")
+        .withChatListener(new ChatEventListener() {
+            @Override
+            public void onConnect(ChzzkChat chat, boolean isReconnecting) {
+                System.out.println("Connect received!");
 
-// ** WARNING: the events will be emitted from the other thread!
-chat.addListener(new ChatEventListener() {
-    @Override
-    public void onConnect() {
-        System.out.println("Connect received!");
-        chat.requestRecentChat(50);
-    }
+                // !! when re-connecting, you shouldn't need to request recent chats!
+                if (!isReconnecting)
+                    chat.requestRecentChat(50);
+            }
 
-    @Override
-    public void onError(Exception ex) {
-        ex.printStackTrace();
-    }
+            @Override
+            public void onError(Exception ex) {
+                ex.printStackTrace();
+            }
 
-    @Override
-    public void onChat(ChatMessage msg) {
-        if (msg.getProfile() == null) {
-            System.out.println("[Chat] Anonymous: " + msg.getContent());
-            return;
-        }
+            @Override
+            public void onChat(ChatMessage msg) {
 
-        System.out.println("[Chat] " + msg.getProfile().getNickname() + ": " + msg.getContent());
-    }
+                System.out.println(msg);
 
-    @Override
-    public void onDonationChat(DonationMessage msg) {
-        if (msg.getProfile() == null) {
-            System.out.println("[Donation] Anonymous: " + msg.getContent() + ": " + msg.getContent() + " [" + msg.getPayAmount() + "원]");
-            return;
-        }
+                if (msg.getProfile() == null) {
+                    System.out.println("[Chat] 익명: " + msg.getContent());
+                    return;
+                }
 
-        System.out.println("[Donation] " + msg.getProfile().getNickname() + ": " + msg.getContent() + " [" + msg.getPayAmount() + "원]");
-    }
+                System.out.println("[Chat] " + msg.getProfile().getNickname() + ": " + msg.getContent());
+            }
 
-    @Override
-    public void onSubscriptionChat(SubscriptionMessage msg) {
-        if (msg.getProfile() == null) {
-            System.out.println("[Subscription] Anonymous: [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
-            return;
-        }
+            @Override
+            public void onDonationChat(DonationMessage msg) {
+                if (msg.getProfile() == null) {
+                    System.out.println("[Donation] 익명: " + msg.getContent() + ": " + msg.getContent() + " [" + msg.getPayAmount() + "원]");
+                    return;
+                }
 
-        System.out.println("[Subscription] " + msg.getProfile().getNickname() + ": [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
-    }
-});
-Thread.sleep(500000);
-chat.close();
+                System.out.println("[Donation] " + msg.getProfile().getNickname() + ": " + msg.getContent() + " [" + msg.getPayAmount() + "원]");
+            }
+
+            @Override
+            public void onSubscriptionChat(SubscriptionMessage msg) {
+                if (msg.getProfile() == null) {
+                    System.out.println("[Subscription] 익명: " + msg.getContent() + ": [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
+                    return;
+                }
+
+                System.out.println("[Subscription] " + msg.getProfile().getNickname() + ": [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
+            }
+        })
+        .build();
+
+chat.connectBlocking();
+Thread.sleep(700000);
+chat.closeBlocking();
 ```
 
 ### connecting to chats (send)
 ```java
-// chzzk need to be logged-in
-ChzzkChat chat = chzzk.chat();
-// Connect from channel ID
-chat.connectFromChannelId("b2665a30ba249486bf2c134973cfc7a2");
+Chzzk chzzk = new ChzzkBuilder()
+        .withAuthorization(NID_AUT, NID_SES)
+        .build();
 
-// ** WARNING: the events will be emitted from the other thread!
-chat.addListener(new ChatEventListener() {
-    @Override
-    public void onConnect() {
-        System.out.println("Connect received!");
-        chat.sendChat("안녕하세요!");
-    }
-});
-Thread.sleep(5000);
-chat.close();
+ChzzkChat chat = chzzk.chat("7f148028d1b8b3feab3a5442badded46")
+        .withChatListener(new ChatEventListener() {
+            @Override
+            public void onConnect(ChzzkChat chat, boolean isReconnecting) {
+                System.out.println("Connect received!");
+                chat.sendChat("안녕하세요!");
+            }
+        })
+        .build();
+
+chat.connectBlocking();
+Thread.sleep(700000);
+chat.closeBlocking();
 ```
 
 ## features
@@ -127,7 +143,7 @@ chat.close();
 - [x] get channel information & rules
 - [x] get current user's information
 - [x] get channel followed status
-- [x] chat integration (read/send)
+- [x] async chat integration (read/send)
 - [x] get recommendation channels
 - [x] fix invalid json (chat)
 
