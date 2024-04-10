@@ -22,6 +22,16 @@ public class ChzzkChat {
     String channelId;
     String chatId;
 
+    boolean autoReconnect = false;
+
+    public boolean isConnectedToChat() {
+        return isConnectedToWebsocket;
+    }
+
+    public boolean shouldAutoReconnect() {
+        return autoReconnect;
+    }
+
     public ChzzkChat(Chzzk chzzk) {
         this.chzzk = chzzk;
     }
@@ -46,20 +56,39 @@ public class ChzzkChat {
         client.sendChat(content);
     }
 
+    /**
+     * Connect to chatting by the channel id.
+     *
+     * @param channelId channel id to connect.
+     * @throws IOException when failed to connect to the chat
+     */
     public void connectFromChannelId(String channelId) throws IOException {
+        connectFromChannelId(channelId, true);
+    }
+
+    /**
+     * Connect to chatting by the channel id
+     *
+     * @param channelId channel id to connect.
+     * @param autoReconnect should reconnect automatically when disconnected by the server.
+     * @throws IOException when failed to connect to the chat
+     */
+    public void connectFromChannelId(String channelId, boolean autoReconnect) throws IOException {
         String chatId = RawApiUtils.getContentJson(chzzk.getHttpClient(),
                 RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
                 .getAsJsonObject()
                 .get("chatChannelId")
                 .getAsString();
 
-        connectFromChatId(channelId, chatId);
+        connectFromChatId(channelId, chatId, autoReconnect);
     }
 
-    void connectFromChatId(String channelId, String chatId) throws IOException {
+    void connectFromChatId(String channelId, String chatId, boolean autoReconnect) throws IOException {
         if (isConnectedToWebsocket) {
             throw new AlreadyConnectedException();
         }
+
+        this.autoReconnect = autoReconnect;
 
         isConnectedToWebsocket = true;
 
@@ -92,6 +121,16 @@ public class ChzzkChat {
 
         client = new ChatWebsocketClient(this,
                 URI.create("wss://kr-ss" + serverId + ".chat.naver.com/chat"));
+
+        client.connect();
+    }
+
+    public void reconnect() {
+        if (client == null) {
+            throw new IllegalStateException("Client not initalized to reconnect!");
+        }
+
+        client = new ChatWebsocketClient(this, client.getURI());
 
         client.connect();
     }

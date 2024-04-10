@@ -162,8 +162,11 @@ public class ChatWebsocketClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         chat.isConnectedToWebsocket = false;
+
+        boolean shouldReconnect = remote && chat.autoReconnect;
+
         for (ChatEventListener listener : chat.listeners) {
-            listener.onConnectionClosed(code, reason, remote);
+            listener.onConnectionClosed(code, reason, remote, shouldReconnect);
         }
 
         if (chat.chzzk.isDebug) {
@@ -171,6 +174,11 @@ public class ChatWebsocketClient extends WebSocketClient {
             System.out.println("Code: " + code);
             System.out.println("Reason: " + reason);
             System.out.println("Remote Close: " + remote);
+            System.out.println("Reconnect: " + shouldReconnect);
+        }
+
+        if (shouldReconnect) {
+            chat.reconnect();
         }
     }
 
