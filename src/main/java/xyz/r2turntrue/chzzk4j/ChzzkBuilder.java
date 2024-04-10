@@ -5,6 +5,7 @@ package xyz.r2turntrue.chzzk4j;
  */
 public class ChzzkBuilder {
     boolean isAnonymous = false;
+    boolean isDebug = false;
     String nidAuth;
     String nidSession;
 
@@ -15,8 +16,14 @@ public class ChzzkBuilder {
         this.isAnonymous = true;
     }
 
+    public ChzzkBuilder withDebugMode() {
+        isDebug = true;
+
+        return this;
+    }
+
     /**
-     * Creates a new {@link ChzzkBuilder} that logged in.
+     * Makes {@link ChzzkBuilder} authorized.
      * To build an instance of {@link Chzzk} that logged in, we must have
      * the values of NID_AUT and NID_SES cookies.<br>
      *
@@ -27,12 +34,17 @@ public class ChzzkBuilder {
      * @param nidAuth The value of NID_AUT cookie
      * @param nidSession The value of NID_SES cookie
      */
-    public ChzzkBuilder(String nidAuth, String nidSession) {
+    public ChzzkBuilder withAuthorization(String nidAuth, String nidSession) {
         this.nidAuth = nidAuth;
         this.nidSession = nidSession;
+        this.isAnonymous = false;
+
+        return this;
     }
 
     public Chzzk build() {
-        return new Chzzk(this);
+        Chzzk chzzk = new Chzzk(this);
+        chzzk.isDebug = this.isDebug;
+        return chzzk;
     }
 }

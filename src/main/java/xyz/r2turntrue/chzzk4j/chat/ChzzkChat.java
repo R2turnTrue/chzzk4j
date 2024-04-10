@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.AlreadyConnectedException;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
 public class ChzzkChat {
     boolean reconnecting;
@@ -33,10 +34,30 @@ public class ChzzkChat {
         return autoReconnect;
     }
 
-    public ChzzkChat(Chzzk chzzk) {
+    ChzzkChat(Chzzk chzzk, String channelId, boolean autoReconnect) {
         this.chzzk = chzzk;
+        this.channelId = channelId;
+        this.autoReconnect = autoReconnect;
     }
 
+    /**
+     * Connects to the chat. This method doesn't block.
+     */
+    public CompletableFuture<Void> connectAsync() {
+        return connectFromChannelId(channelId, autoReconnect);
+    }
+
+    /**
+     * Connects to the chat. This method blocks.
+     */
+    public void connectBlocking() {
+        connectFromChannelId(channelId, autoReconnect).join();
+    }
+
+    @Deprecated
+    /**
+     * @deprecated Please add listeners when build {@link ChzzkChat} by {@link ChzzkChatBuilder}
+     */
     public void addListener(ChatEventListener listener) {
         listeners.add(listener);
     }
@@ -58,98 +79,126 @@ public class ChzzkChat {
     }
 
     /**
-     * Connect to chatting by the channel id.
-     *
-     * @param channelId channel id to connect.
-     * @throws IOException when failed to connect to the chat
-     */
-    public void connectFromChannelId(String channelId) throws IOException {
-        connectFromChannelId(channelId, true);
-    }
-
-    /**
      * Connect to chatting by the channel id
      *
      * @param channelId channel id to connect.
      * @param autoReconnect should reconnect automatically when disconnected by the server.
      * @throws IOException when failed to connect to the chat
      */
-    public void connectFromChannelId(String channelId, boolean autoReconnect) throws IOException {
-        String chatId = RawApiUtils.getContentJson(chzzk.getHttpClient(),
-                RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
-                .getAsJsonObject()
-                .get("chatChannelId")
-                .getAsString();
+    private CompletableFuture<Void> connectFromChannelId(String channelId, boolean autoReconnect) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                String chatId = RawApiUtils.getContentJson(chzzk.getHttpClient(),
+                                RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
+                        .getAsJsonObject()
+                        .get("chatChannelId")
+                        .getAsString();
 
-        connectFromChatId(channelId, chatId, autoReconnect);
+                connectFromChatId(channelId, chatId, autoReconnect).join();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
-    void connectFromChatId(String channelId, String chatId, boolean autoReconnect) throws IOException {
-        if (isConnectedToWebsocket) {
-            throw new AlreadyConnectedException();
-        }
+    private CompletableFuture<Void> connectFromChatId(String channelId, String chatId, boolean autoReconnect) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                if (isConnectedToWebsocket) {
+                    throw new AlreadyConnectedException();
+                }
 
-        reconnecting = false;
+                reconnecting = false;
 
-        this.autoReconnect = autoReconnect;
+                this.autoReconnect = autoReconnect;
 
-        isConnectedToWebsocket = true;
+                isConnectedToWebsocket = true;
 
-        this.channelId = channelId;
-        this.chatId = chatId;
+                this.channelId = channelId;
+                this.chatId = chatId;
 
-        userId = "";
-        try {
-            ChzzkUser user = chzzk.getLoggedUser();
-            userId = user.getUserId();
-        } catch (NotLoggedInException e) {
-        }
+                userId = "";
+                try {
+                    ChzzkUser user = chzzk.getLoggedUser();
+                    userId = user.getUserId();
+                } catch (NotLoggedInException e) {
+                }
 
-        String accessTokenUrl = Chzzk.GAME_API_URL +
-                "/v1/chats/access-token?channelId=" + chatId +
-                "&chatType=STREAMING";
-        accessToken = RawApiUtils.getContentJson(
-                chzzk.getHttpClient(),
-                RawApiUtils.httpGetRequest(accessTokenUrl).build(),
-                chzzk.isDebug
-        ).getAsJsonObject().get("accessToken").getAsString();
+                String accessTokenUrl = Chzzk.GAME_API_URL +
+                        "/v1/chats/access-token?channelId=" + chatId +
+                        "&chatType=STREAMING";
+                accessToken = RawApiUtils.getContentJson(
+                        chzzk.getHttpClient(),
+                        RawApiUtils.httpGetRequest(accessTokenUrl).build(),
+                        chzzk.isDebug
+                ).getAsJsonObject().get("accessToken").getAsString();
 
-        int serverId = 0;
+                int serverId = 0;
 
-        for (char i : channelId.toCharArray()) {
-            serverId += Character.getNumericValue(i);
-        }
+                for (char i : channelId.toCharArray()) {
+                    serverId += Character.getNumericValue(i);
+                }
 
-        serverId = Math.abs(serverId) % 9 + 1;
+                serverId = Math.abs(serverId) % 9 + 1;
 
-        client = new ChatWebsocketClient(this,
-                URI.create("wss://kr-ss" + serverId + ".chat.naver.com/chat"));
+                client = new ChatWebsocketClient(this,
+                        URI.create("wss://kr-ss" + serverId + ".chat.naver.com/chat"));
 
-        client.connect();
+                client.connectBlocking();
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
-    public void reconnect() throws InterruptedException {
-        if (client == null) {
-            throw new IllegalStateException("Client not initalized to reconnect!");
-        }
+    int reconnectCount = 0;
 
-        URI chatUri = client.getURI();
+    public CompletableFuture<Void> reconnectAsync() {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                if (client == null) {
+                    throw new IllegalStateException("Client not initalized to reconnect!");
+                }
 
-        client = null;
+                URI chatUri = client.getURI();
 
-        reconnecting = true;
+                if (!client.isClosed() && !client.isClosing()) {
+                    try {
+                        client.closeBlocking();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
 
-        client = new ChatWebsocketClient(this, chatUri);
+                reconnecting = true;
 
-        client.connect();
+                reconnectCount++;
+
+                System.out.println("Reconnecting " + reconnectCount);
+
+                client.reconnectBlocking();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
-    public void close() {
-        if (!isConnectedToWebsocket) {
-            throw new IllegalStateException("Not connected!");
-        }
+    public CompletableFuture<Void> closeAsync() {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                if (!isConnectedToWebsocket) {
+                    throw new IllegalStateException("Not connected!");
+                }
 
-        client.close();
-        isConnectedToWebsocket = false;
+                client.closeBlocking();
+                isConnectedToWebsocket = false;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void closeBlocking() {
+        closeAsync().join();
     }
 }

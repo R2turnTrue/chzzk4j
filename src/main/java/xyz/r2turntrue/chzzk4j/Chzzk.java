@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat;
+import xyz.r2turntrue.chzzk4j.chat.ChzzkChatBuilder;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
@@ -75,8 +76,8 @@ public class Chzzk {
     /**
      * Get new an instance of {@link ChzzkChat} with this {@link Chzzk}.
      */
-    public ChzzkChat chat() {
-        return new ChzzkChat(this);
+    public ChzzkChatBuilder chat(String channelId) {
+        return new ChzzkChatBuilder(this, channelId);
     }
 
     public OkHttpClient getHttpClient() {

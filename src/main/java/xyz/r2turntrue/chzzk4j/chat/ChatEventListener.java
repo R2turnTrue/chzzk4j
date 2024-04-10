@@ -1,7 +1,7 @@
 package xyz.r2turntrue.chzzk4j.chat;
 
 public interface ChatEventListener {
-    default void onConnect(boolean isReconnecting) {}
+    default void onConnect(ChzzkChat chat, boolean isReconnecting) {}
 
     default void onConnectionClosed(int code, String reason, boolean remote, boolean tryingToReconnect) {}
 
