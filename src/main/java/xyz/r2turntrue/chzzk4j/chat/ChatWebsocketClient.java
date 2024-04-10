@@ -106,6 +106,9 @@ public class ChatWebsocketClient extends WebSocketClient {
                 WsMessageClientboundRecentChat msg = gson.fromJson(parsedMessage, WsMessageClientboundRecentChat.class);
 
                 for (WsMessageClientboundRecentChat.Body.RecentChat chat : msg.bdy.messageList) {
+
+                    if (chat.userId.equals("@OPEN")) continue;
+
                     Class<? extends ChatMessage> clazz = ChatMessage.class;
 
                     if (chat.messageTypeCode == WsMessageTypes.ChatTypes.DONATION) {
@@ -129,6 +132,8 @@ public class ChatWebsocketClient extends WebSocketClient {
                 //System.out.println(msg.bdy.length);
 
                 for (WsMessageClientboundChat.Chat chat : msg.bdy) {
+                    if (chat.uid.equals("@OPEN")) continue;
+
                     Class<? extends ChatMessage> clazz = ChatMessage.class;
 
                     if (chat.msgTypeCode == WsMessageTypes.ChatTypes.DONATION) {
