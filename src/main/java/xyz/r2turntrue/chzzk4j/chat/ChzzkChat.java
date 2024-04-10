@@ -128,14 +128,18 @@ public class ChzzkChat {
         client.connect();
     }
 
-    public void reconnect() {
+    public void reconnect() throws InterruptedException {
         if (client == null) {
             throw new IllegalStateException("Client not initalized to reconnect!");
         }
 
+        URI chatUri = client.getURI();
+
+        client = null;
+
         reconnecting = true;
 
-        client = new ChatWebsocketClient(this, client.getURI());
+        client = new ChatWebsocketClient(this, chatUri);
 
         client.connect();
     }

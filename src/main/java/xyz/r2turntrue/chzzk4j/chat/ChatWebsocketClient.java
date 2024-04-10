@@ -178,7 +178,14 @@ public class ChatWebsocketClient extends WebSocketClient {
         }
 
         if (shouldReconnect) {
-            chat.reconnect();
+            try {
+                chat.reconnect();
+            } catch (InterruptedException e) {
+                for (ChatEventListener listener : chat.listeners) {
+                    listener.onError(e);
+                }
+                throw new RuntimeException(e);
+            }
         }
     }
 
