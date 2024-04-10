@@ -9,7 +9,7 @@ public class ChatReconnectTest extends ChzzkTestBase {
     // to test memory leaks
     @Test
     void testingChatReconnect() throws IOException, InterruptedException {
-        ChzzkChat chat = chzzk.chat("dfa51694131f7e970c7a62ccde3bc915")
+        ChzzkChat chat = chzzk.chat("e23a2e05c02e77a3516f14f3f4f4312b")
                         .withChatListener(new ChatEventListener() {
                             @Override
                             public void onConnect(ChzzkChat chat, boolean isReconnecting) {

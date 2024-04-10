@@ -183,6 +183,10 @@ public class ChzzkChat {
         });
     }
 
+    public void reconnectSync() {
+        reconnectAsync().join();
+    }
+
     public CompletableFuture<Void> closeAsync() {
         return CompletableFuture.runAsync(() -> {
             try {
