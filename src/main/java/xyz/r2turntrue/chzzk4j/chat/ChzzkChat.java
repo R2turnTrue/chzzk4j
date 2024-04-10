@@ -11,6 +11,7 @@ import java.nio.channels.AlreadyConnectedException;
 import java.util.ArrayList;
 
 public class ChzzkChat {
+    boolean reconnecting;
     Chzzk chzzk;
 
     boolean isConnectedToWebsocket = false;
@@ -88,6 +89,8 @@ public class ChzzkChat {
             throw new AlreadyConnectedException();
         }
 
+        reconnecting = false;
+
         this.autoReconnect = autoReconnect;
 
         isConnectedToWebsocket = true;
@@ -129,6 +132,8 @@ public class ChzzkChat {
         if (client == null) {
             throw new IllegalStateException("Client not initalized to reconnect!");
         }
+
+        reconnecting = true;
 
         client = new ChatWebsocketClient(this, client.getURI());
 

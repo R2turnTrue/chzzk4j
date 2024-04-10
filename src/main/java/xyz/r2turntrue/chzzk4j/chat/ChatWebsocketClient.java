@@ -90,7 +90,7 @@ public class ChatWebsocketClient extends WebSocketClient {
                     if (chat.chzzk.isDebug) System.out.println("Successfully connected!");
                     sid = msg.bdy.sid;
                     for (ChatEventListener listener : chat.listeners) {
-                        listener.onConnect();
+                        listener.onConnect(chat.reconnecting);
                     }
                 } else {
                     throw new ChatFailedConnectException(msg.retCode, msg.retMsg);

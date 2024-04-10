@@ -17,13 +17,15 @@ public class ChatTest extends ChzzkTestBase {
 
         System.out.println(new Gson().toJson(RawApiUtils.getContentJson(chzzk.getHttpClient(),
                 RawApiUtils.httpGetRequest("https://api.chzzk.naver.com/service/v2/channels/dc7fb0d085cfbbe90e11836e3b85b784/live-detail").build(), chzzk.isDebug)));
-        chat.connectFromChannelId("ca1850b2eceb7f86146695fd9bb9cefc");
+        chat.connectFromChannelId("dfa51694131f7e970c7a62ccde3bc915");
         chat.addListener(new ChatEventListener() {
             @Override
-            public void onConnect() {
+            public void onConnect(boolean isReconnecting) {
                 System.out.println("Connect received!");
                 //chat.sendChat("ㅋㅋㅋㅋ");
-                chat.requestRecentChat(50);
+
+                if (!isReconnecting)
+                    chat.requestRecentChat(50);
             }
 
             @Override
