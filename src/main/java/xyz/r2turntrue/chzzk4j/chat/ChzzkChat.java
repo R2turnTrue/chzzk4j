@@ -151,8 +151,6 @@ public class ChzzkChat {
         });
     }
 
-    int reconnectCount = 0;
-
     public CompletableFuture<Void> reconnectAsync() {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -171,10 +169,6 @@ public class ChzzkChat {
                 }
 
                 reconnecting = true;
-
-                reconnectCount++;
-
-                System.out.println("Reconnecting " + reconnectCount);
 
                 client.reconnectBlocking();
             } catch (InterruptedException e) {

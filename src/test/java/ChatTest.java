@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ChatTest extends ChzzkTestBase {
     @Test
     void testingChat() throws IOException, InterruptedException {
-        ChzzkChat chat = chzzk.chat("a8395325c0b23c12d2d818769416fd8e")
+        ChzzkChat chat = chzzk.chat("7f148028d1b8b3feab3a5442badded46")
                 .withChatListener(new ChatEventListener() {
                     @Override
                     public void onConnect(ChzzkChat chat, boolean isReconnecting) {
