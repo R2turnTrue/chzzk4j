@@ -38,6 +38,10 @@ public class ChzzkChat {
         return chatId;
     }
 
+    public String getChannelId() {
+        return channelId;
+    }
+
     ChzzkChat(Chzzk chzzk, String channelId, boolean autoReconnect) {
         this.chzzk = chzzk;
         this.channelId = channelId;
