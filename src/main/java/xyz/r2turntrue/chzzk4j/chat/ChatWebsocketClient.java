@@ -10,12 +10,18 @@ import xyz.r2turntrue.chzzk4j.exception.ChatFailedConnectException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ChatWebsocketClient extends WebSocketClient {
 
     private ChzzkChat chat;
     private Gson gson;
     private String sid;
+    private ScheduledExecutorService executor;
+    private long lastSendPingTime;
+    private long lastRecivedMessageTime;
 
     public ChatWebsocketClient(ChzzkChat chat, URI websocketUri) {
         super(websocketUri);
@@ -24,6 +30,7 @@ public class ChatWebsocketClient extends WebSocketClient {
                 .newBuilder()
                 .disableHtmlEscaping()
                 .create();
+        this.executor = Executors.newSingleThreadScheduledExecutor();
     }
 
     private HashMap<Integer, Class<?>> clientboundMessages = new HashMap<>() {{
@@ -46,6 +53,7 @@ public class ChatWebsocketClient extends WebSocketClient {
     public void onOpen(ServerHandshake handshakedata) {
         if (chat.chzzk.isDebug) System.out.println("Connected to websocket! Connecting to chat...");
 
+        lastRecivedMessageTime = lastSendPingTime = System.currentTimeMillis();
         WsMessageServerboundConnect handshake = setupWsMessage(new WsMessageServerboundConnect());
         handshake.bdy = new WsMessageServerboundConnect.Body();
         handshake.bdy.accTkn = chat.accessToken;
@@ -71,7 +79,6 @@ public class ChatWebsocketClient extends WebSocketClient {
     public void onMessage(String message) {
 
         try {
-
             if (chat.chzzk.isDebug) System.out.println("Message: " + message);
 
             JsonObject parsedMessage = JsonParser.parseString(message)
@@ -92,6 +99,25 @@ public class ChatWebsocketClient extends WebSocketClient {
                     for (ChatEventListener listener : chat.listeners) {
                         listener.onConnect(chat, chat.reconnecting);
                     }
+
+                    Runnable task = () -> {
+                        if(System.currentTimeMillis() - lastSendPingTime >= 60000 || // 마지막 핑 시간으로 부터 1분이 지난 경우
+                            System.currentTimeMillis() - lastRecivedMessageTime >= 20000) { // 마지막 메시지가 도착한 뒤로 부터 20초가 지났을 경우
+                            if (chat.chzzk.isDebug) {
+                                System.out.println("need client ping: current = " + (System.currentTimeMillis() / 1000) +
+                                        ", ping = " + (lastSendPingTime / 1000)  +
+                                        ", recived message = " + (lastRecivedMessageTime/1000));
+                            }
+
+                            if(isOpen()) {
+                                this.send(gson.toJson(new WsMessageServerboundPing()));
+                            }
+
+                            lastRecivedMessageTime = lastSendPingTime = System.currentTimeMillis();
+                        }
+                    };
+
+                    executor.scheduleAtFixedRate(task, 0, 1, TimeUnit.SECONDS);
                 } else {
                     throw new ChatFailedConnectException(msg.retCode, msg.retMsg);
                 }
@@ -126,6 +152,7 @@ public class ChatWebsocketClient extends WebSocketClient {
 
             } else if (cmdId == WsMessageTypes.Commands.CHAT ||
                     cmdId == WsMessageTypes.Commands.DONATION) {
+                lastRecivedMessageTime = System.currentTimeMillis();
 
                 WsMessageClientboundChat msg = gson.fromJson(parsedMessage, WsMessageClientboundChat.class);
 
@@ -180,6 +207,8 @@ public class ChatWebsocketClient extends WebSocketClient {
         if (shouldReconnect) {
             chat.reconnectAsync();
         }
+
+        executor.shutdownNow();
     }
 
     @Override
