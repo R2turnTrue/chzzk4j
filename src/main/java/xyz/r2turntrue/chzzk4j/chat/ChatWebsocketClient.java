@@ -101,8 +101,8 @@ public class ChatWebsocketClient extends WebSocketClient {
                     }
 
                     Runnable task = () -> {
-                        if(System.currentTimeMillis() - lastSendPingTime >= 60000 || // 마지막 핑 시간으로 부터 1분이 지난 경우
-                            System.currentTimeMillis() - lastRecivedMessageTime >= 20000) { // 마지막 메시지가 도착한 뒤로 부터 20초가 지났을 경우
+                        if(System.currentTimeMillis() - lastSendPingTime >= 60000 || // 1 minutes from last ping time
+                            System.currentTimeMillis() - lastRecivedMessageTime >= 20000) { // 20 seconds later from last message
                             if (chat.chzzk.isDebug) {
                                 System.out.println("need client ping: current = " + (System.currentTimeMillis() / 1000) +
                                         ", ping = " + (lastSendPingTime / 1000)  +
