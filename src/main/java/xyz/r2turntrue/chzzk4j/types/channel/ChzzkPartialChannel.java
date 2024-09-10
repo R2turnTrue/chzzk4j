@@ -3,6 +3,7 @@ package xyz.r2turntrue.chzzk4j.types.channel;
 import org.jetbrains.annotations.Nullable;
 import xyz.r2turntrue.chzzk4j.Chzzk;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
+import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 
 import java.io.IOException;
 
@@ -12,6 +13,7 @@ public class ChzzkPartialChannel {
     private String channelImageUrl;
     private boolean verifiedMark;
     private ChzzkChannelPersonalData personalData;
+    private ChzzkChannelEmotePackData emotePackData;
 
     ChzzkPartialChannel() {}
 
@@ -64,6 +66,13 @@ public class ChzzkPartialChannel {
         return personalData;
     }
 
+    /**
+     * Get the emoticon pack data of the channel.
+     */
+    @Nullable
+    public ChzzkChannelEmotePackData getEmotePackData() {
+        return emotePackData;
+    }
     @Override
     public String toString() {
         return "ChzzkPartialChannel{" +
