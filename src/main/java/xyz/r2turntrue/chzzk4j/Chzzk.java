@@ -12,13 +12,14 @@ import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkFollowingStatusResponse;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
+import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollowingData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelRules;
 import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 public class Chzzk {
     public static String API_URL = "https://api.chzzk.naver.com";
@@ -101,7 +102,6 @@ public class Chzzk {
         ChzzkChannel channel = gson.fromJson(
                 contentJson,
                 ChzzkChannel.class);
-
         if (channel.getChannelId() == null) {
             throw new ChannelNotExistsException("The channel does not exists!");
         }
@@ -132,6 +132,24 @@ public class Chzzk {
         }
 
         return rules;
+    }
+
+    public ChzzkChannelEmotePackData getChannelEmotePackData(String channelId) throws IOException {
+        JsonElement contentJson = RawApiUtils.getContentJson(
+                httpClient,
+                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/emoji-packs").build(),
+                isDebug);
+        ChzzkChannelEmotePackData emoticons = null;
+        List<JsonElement> emoteElements =  contentJson.getAsJsonObject().asMap().get("subscriptionEmojiPacks").getAsJsonArray().asList();
+        for (JsonElement emoteElement : emoteElements) {
+            if (emoteElement.getAsJsonObject().asMap().get("emojiPackId").getAsString().equals("\""+channelId+ "\"")) {
+                continue;
+            }
+            emoticons= gson.fromJson(
+                    emoteElement,
+                    ChzzkChannelEmotePackData.class);
+        }
+        return emoticons;
     }
 
     /**
