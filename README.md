@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.R2turnTrue:chzzk4j:0.0.9")
+    implementation("io.github.R2turnTrue:chzzk4j:0.0.10")
 }
 ```
 
@@ -146,6 +146,7 @@ chat.closeBlocking();
 - [x] async chat integration (read/send)
 - [x] get recommendation channels
 - [x] fix invalid json (chat)
+- [x] load emoji pack
 
 ### need to implement
 
