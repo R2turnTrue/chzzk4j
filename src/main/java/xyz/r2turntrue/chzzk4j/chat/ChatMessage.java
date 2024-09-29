@@ -18,6 +18,7 @@ public class ChatMessage {
         // todo: emoji parsing implementation
         //public Emoji[] emojis;
 
+        String donationType;
         String osType;
 
         int payAmount = -1;
@@ -25,6 +26,15 @@ public class ChatMessage {
         // Subscription
         int month = 0;
         String tierName = "";
+
+        // Mission
+        int durationTime;
+        String missionDonationId;
+        String missionCreatedTime;
+        String missionEndTime;
+        String missionText;
+        String status;
+        boolean success;
 
         public OsType getOsType() {
             return OsType.valueOf(osType);
