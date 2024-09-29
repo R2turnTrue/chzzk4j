@@ -7,20 +7,27 @@ import java.util.Date;
 import java.util.Objects;
 
 public class ChatMessage {
+    public enum OsType
+    {
+        PC,
+        AOS,
+        IOS
+    }
+
     public static class Extras {
-        // todo: emoji implementation
+        // todo: emoji parsing implementation
         //public Emoji[] emojis;
 
-        // todo: osType as enum
         String osType;
 
         int payAmount = -1;
 
+        // Subscription
         int month = 0;
         String tierName = "";
 
-        public String getOsType() {
-            return osType;
+        public OsType getOsType() {
+            return OsType.valueOf(osType);
         }
 
         public int getPayAmount() {
