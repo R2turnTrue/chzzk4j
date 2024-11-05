@@ -1,5 +1,6 @@
 package xyz.r2turntrue.chzzk4j.chat;
 
+import com.google.gson.JsonElement;
 import xyz.r2turntrue.chzzk4j.Chzzk;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
@@ -92,17 +93,21 @@ public class ChzzkChat {
      * @param channelId channel id to connect.
      * @param autoReconnect should reconnect automatically when disconnected by the server.
      * @throws IOException when failed to connect to the chat
+     * @throws UnsupportedOperationException when failed to fetch chatChannelId! (Try to put NID_SES/NID_AUT when create {@link Chzzk}, because it's mostly caused by age restriction)
      */
     private CompletableFuture<Void> connectFromChannelId(String channelId, boolean autoReconnect) {
         return CompletableFuture.runAsync(() -> {
             try {
-                String chatId = RawApiUtils.getContentJson(chzzk.getHttpClient(),
-                                RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
+                JsonElement chatIdRaw = RawApiUtils.getContentJson(chzzk.getHttpClient(),
+                                RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v3/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
                         .getAsJsonObject()
-                        .get("chatChannelId")
-                        .getAsString();
+                        .get("chatChannelId");
 
-                connectFromChatId(channelId, chatId, autoReconnect).join();
+                if (chatIdRaw.isJsonNull()) {
+                    throw new UnsupportedOperationException("Failed to fetch chatChannelId! (Try to put NID_SES/NID_AUT, because it's mostly caused by age restriction)");
+                }
+
+                connectFromChatId(channelId, chatIdRaw.getAsString(), autoReconnect).join();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
