@@ -13,5 +13,7 @@ public interface ChatEventListener {
 
     default void onDonationChat(DonationMessage msg) {}
 
+    default void onMissionDonationChat(MissionDonationMessage msg) {}
+
     default void onSubscriptionChat(SubscriptionMessage msg) {}
 }

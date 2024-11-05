@@ -71,7 +71,7 @@ public class ChatWebsocketClient extends WebSocketClient {
                 DonationMessage donation = (DonationMessage) msg;
 
                 if (donation.extras.donationType.equalsIgnoreCase("MISSION"))
-                    listener.onDonationChat((MissionDonationMessage) donation);
+                    listener.onMissionDonationChat((MissionDonationMessage) donation);
                 else
                     listener.onDonationChat(donation);
             }

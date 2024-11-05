@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ChatTest extends ChzzkTestBase {
     @Test
     void testingChat() throws IOException, InterruptedException {
-        ChzzkChat chat = chzzk.chat("7f148028d1b8b3feab3a5442badded46")
+        ChzzkChat chat = loginChzzk.chat("17aa057a8248b53affe30512a91481f5")
                 .withChatListener(new ChatEventListener() {
                     @Override
                     public void onConnect(ChzzkChat chat, boolean isReconnecting) {
@@ -59,6 +59,16 @@ public class ChatTest extends ChzzkTestBase {
                         }
 
                         System.out.println("[Subscription] " + msg.getProfile().getNickname() + ": [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
+                    }
+
+                    @Override
+                    public void onMissionDonationChat(MissionDonationMessage msg) {
+                        if (msg.getProfile() == null) {
+                            System.out.println("[Mission] 익명: " + msg.getMissionText() + ": [" + msg.getPayAmount() + "원]");
+                            return;
+                        }
+
+                        System.out.println("[Mission] 익명: " + msg.getMissionText() + ": [" + msg.getPayAmount() + "원]");
                     }
                 })
                 .build();
