@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.R2turnTrue:chzzk4j:0.0.10")
+    implementation("io.github.R2turnTrue:chzzk4j:0.0.11")
 }
 ```
 
@@ -108,6 +108,16 @@ ChzzkChat chat = chzzk.chat("7f148028d1b8b3feab3a5442badded46")
                 }
 
                 System.out.println("[Subscription] " + msg.getProfile().getNickname() + ": [" + msg.getSubscriptionMonth() + "개월 " + msg.getSubscriptionTierName() + "]");
+            }
+
+            @Override
+            public void onMissionDonationChat(MissionDonationMessage msg) {
+                if (msg.getProfile() == null) {
+                    System.out.println("[Mission] 익명: " + msg.getMissionText() + ": [" + msg.getPayAmount() + "원]");
+                    return;
+                }
+
+                System.out.println("[Mission] 익명: " + msg.getMissionText() + ": [" + msg.getPayAmount() + "원]");
             }
         })
         .build();
