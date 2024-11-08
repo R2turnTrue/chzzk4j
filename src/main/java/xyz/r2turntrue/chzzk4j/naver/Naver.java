@@ -17,12 +17,20 @@ public class Naver {
     private final @NotNull String password;
     private final @NotNull Map<Cookie, String> cookies;
 
+    /**
+     * Log in to Naver using ID and password.
+     * @param id naver id
+     * @param password password of the naver id
+     */
     public Naver(@NotNull String id, @NotNull String password) {
         this.id = id;
         this.password = password;
         this.cookies = Maps.newConcurrentMap();
     }
 
+    /**
+     * Login to naver with id and password
+     */
     public CompletableFuture<Void> login() {
         return CompletableFuture.runAsync(() -> {
             WebDriver driver = Chrome.getDriver();
@@ -62,6 +70,11 @@ public class Naver {
         return password;
     }
 
+    /**
+     * If logged into Naver, it returns the cookie value.
+     * If not logged in, it returns an empty string.
+     * @param key {@link Cookie}
+     */
     public @NotNull String getCookie(@NotNull Naver.Cookie key) {
         return cookies.getOrDefault(key, "");
     }

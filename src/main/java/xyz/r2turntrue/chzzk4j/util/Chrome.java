@@ -10,10 +10,16 @@ import java.util.concurrent.TimeUnit;
 
 public class Chrome {
 
+    /**
+     * Explicitly sets the properties for the chrome driver.
+     */
     public static void setDriverProperty(@NotNull String path) {
         System.setProperty("webdriver.chrome.driver", path);
     }
 
+    /**
+     * Get chrome web driver.
+     */
     public static WebDriver getDriver() {
         try {
             ChromeOptions options = new ChromeOptions();
