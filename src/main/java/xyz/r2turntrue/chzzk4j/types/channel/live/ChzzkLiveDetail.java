@@ -5,18 +5,74 @@ import org.jetbrains.annotations.NotNull;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-public interface ChzzkLiveDetail extends ChzzkLiveStatus {
+public class ChzzkLiveDetail extends ChzzkLiveStatus {
 
-    int getLiveId();
+    private int liveId;
+    private String liveImageUrl;
+    private String defaultThumbnailImageUrl;
+    private String openDate;
+    private String closeDate;
+    private ChzzkLiveChannel channel;
 
-    @NotNull String getLiveImageUrl(@NotNull Resolution resolution);
+    public int getLiveId() {
+        return liveId;
+    }
 
-    @NotNull String getDefaultThumbnailImageUrl();
+    public @NotNull String getLiveImageUrl(@NotNull Resolution resolution) {
+        return liveImageUrl.replace("{type}", resolution.getRawAsString());
+    }
 
-    @NotNull Optional<LocalDateTime> getOpenDate();
+    public @NotNull String getDefaultThumbnailImageUrl() {
+        return defaultThumbnailImageUrl;
+    }
 
-    @NotNull Optional<LocalDateTime> getCloseDate();
+    public @NotNull Optional<LocalDateTime> getOpenDate() {
+        if (openDate == null) {
+            return Optional.empty();
+        }
+        return Optional.of(LocalDateTime.parse(openDate));
+    }
 
-    @NotNull ChzzkLiveChannel getLiveChannel();
+    public @NotNull Optional<LocalDateTime> getCloseDate() {
+        if (closeDate == null) {
+            return Optional.empty();
+        }
+        return Optional.of(LocalDateTime.parse(closeDate));
+    }
 
+    public @NotNull ChzzkLiveChannel getLiveChannel() {
+        return channel;
+    }
+
+    @Override
+    public String toString() {
+        return "ChzzkLiveDetailImpl{" +
+                "liveId=" + liveId +
+                ", liveImageUrl='" + liveImageUrl + '\'' +
+                ", defaultThumbnailImageUrl='" + defaultThumbnailImageUrl + '\'' +
+                ", openDate='" + openDate + '\'' +
+                ", closeDate='" + closeDate + '\'' +
+                ", channel=" + channel +
+                ", liveTitle='" + liveTitle + '\'' +
+                ", status='" + status + '\'' +
+                ", concurrentUserCount=" + concurrentUserCount +
+                ", accumulateCount=" + accumulateCount +
+                ", paidPromotion=" + paidPromotion +
+                ", adult=" + adult +
+                ", clipActive=" + clipActive +
+                ", chatChannelId='" + chatChannelId + '\'' +
+                ", tags=" + tags +
+                ", categoryType='" + categoryType + '\'' +
+                ", liveCategory='" + liveCategory + '\'' +
+                ", liveCategoryValue='" + liveCategoryValue + '\'' +
+                ", livePollingStatusJson='" + livePollingStatusJson + '\'' +
+                ", faultStatus=" + faultStatus +
+                ", userAdultStatus=" + userAdultStatus +
+                ", chatActive=" + chatActive +
+                ", chatAvailableGroup='" + chatAvailableGroup + '\'' +
+                ", chatAvailableCondition='" + chatAvailableCondition + '\'' +
+                ", minFollowerMinute=" + minFollowerMinute +
+                ", chatDonationRankingExposure=" + chatDonationRankingExposure +
+                '}';
+    }
 }

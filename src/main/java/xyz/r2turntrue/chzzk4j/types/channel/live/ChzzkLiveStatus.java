@@ -4,40 +4,120 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface ChzzkLiveStatus {
+public class ChzzkLiveStatus {
 
-    @NotNull String getTitle();
+    protected String liveTitle;
+    protected String status;
+    protected int concurrentUserCount;
+    protected int accumulateCount;
+    protected boolean paidPromotion;
+    protected boolean adult;
+    protected boolean clipActive;
+    protected String chatChannelId;
+    protected List<String> tags;
+    protected String categoryType;
+    protected String liveCategory;
+    protected String liveCategoryValue;
+    protected String livePollingStatusJson;
+    protected Object faultStatus;
+    protected Object userAdultStatus;
+    protected boolean chatActive;
+    protected String chatAvailableGroup;
+    protected String chatAvailableCondition;
+    protected int minFollowerMinute;
+    protected boolean chatDonationRankingExposure;
 
-    boolean isOnline();
+    public @NotNull String getTitle() {
+        return liveTitle;
+    }
 
-    int getUserCount();
+    public boolean isOnline() {
+        return status.equalsIgnoreCase("open");
+    }
 
-    int getAccumulateUserCount();
+    public int getUserCount() {
+        return concurrentUserCount;
+    }
 
-    boolean hasPaidPromotion();
+    public int getAccumulateUserCount() {
+        return accumulateCount;
+    }
 
-    boolean isNSFW();
+    public boolean hasPaidPromotion() {
+        return paidPromotion;
+    }
 
-    boolean isClipActive();
+    public boolean isNSFW() {
+        return adult;
+    }
 
-    @NotNull String getChatChannelId();
+    public boolean isClipActive() {
+        return clipActive;
+    }
 
-    @NotNull List<String> getTags();
+    public @NotNull String getChatChannelId() {
+        return chatChannelId;
+    }
 
-    @NotNull String getCategoryType();
+    public @NotNull List<String> getTags() {
+        return List.copyOf(tags);
+    }
 
-    @NotNull String getLiveCategory();
+    public @NotNull String getCategoryType() {
+        return categoryType;
+    }
 
-    @NotNull String getLiveCategoryValue();
+    public @NotNull String getLiveCategory() {
+        return liveCategory;
+    }
 
-    boolean isChatActive();
+    public @NotNull String getLiveCategoryValue() {
+        return liveCategoryValue;
+    }
 
-    @NotNull String getChatAvailableGroup();
+    public boolean isChatActive() {
+        return chatActive;
+    }
 
-    @NotNull String getChatAvailableCondition();
+    public @NotNull String getChatAvailableGroup() {
+        return chatAvailableGroup;
+    }
 
-    int getMinFollowerMinute();
+    public @NotNull String getChatAvailableCondition() {
+        return chatAvailableCondition;
+    }
 
-    boolean isChatDonationRankingExposure();
+    public int getMinFollowerMinute() {
+        return minFollowerMinute;
+    }
 
+    public boolean isChatDonationRankingExposure() {
+        return chatDonationRankingExposure;
+    }
+
+    @Override
+    public String toString() {
+        return "ChzzkLiveStatusImpl{" +
+                "liveTitle='" + liveTitle + '\'' +
+                ", status='" + status + '\'' +
+                ", concurrentUserCount=" + concurrentUserCount +
+                ", accumulateCount=" + accumulateCount +
+                ", paidPromotion=" + paidPromotion +
+                ", adult=" + adult +
+                ", clipActive=" + clipActive +
+                ", chatChannelId='" + chatChannelId + '\'' +
+                ", tags=" + tags +
+                ", categoryType='" + categoryType + '\'' +
+                ", liveCategory='" + liveCategory + '\'' +
+                ", liveCategoryValue='" + liveCategoryValue + '\'' +
+                ", livePollingStatusJson='" + livePollingStatusJson + '\'' +
+                ", faultStatus=" + faultStatus +
+                ", userAdultStatus=" + userAdultStatus +
+                ", chatActive=" + chatActive +
+                ", chatAvailableGroup='" + chatAvailableGroup + '\'' +
+                ", chatAvailableCondition='" + chatAvailableCondition + '\'' +
+                ", minFollowerMinute=" + minFollowerMinute +
+                ", chatDonationRankingExposure=" + chatDonationRankingExposure +
+                '}';
+    }
 }

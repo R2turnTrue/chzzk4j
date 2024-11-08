@@ -114,19 +114,19 @@ public class Chzzk {
     public @NotNull ChzzkLiveStatus getLiveStatus(@NotNull String channelId) throws IOException {
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/live-status").build(),
+                RawApiUtils.httpGetRequest(API_URL + "/polling/v2/channels/" + channelId + "/live-status").build(),
                 isDebug);
 
-        return gson.fromJson(contentJson, ChzzkLiveStatusImpl.class);
+        return gson.fromJson(contentJson, ChzzkLiveStatus.class);
     }
 
     public @NotNull ChzzkLiveDetail getLiveDetail(@NotNull String channelId) throws IOException {
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/live-detail").build(),
+                RawApiUtils.httpGetRequest(API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(),
                 isDebug);
 
-        return gson.fromJson(contentJson, ChzzkLiveDetailImpl.class);
+        return gson.fromJson(contentJson, ChzzkLiveDetail.class);
     }
 
     /**

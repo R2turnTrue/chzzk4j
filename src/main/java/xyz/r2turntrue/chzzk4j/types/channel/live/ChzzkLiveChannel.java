@@ -2,14 +2,37 @@ package xyz.r2turntrue.chzzk4j.types.channel.live;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface ChzzkLiveChannel {
+public class ChzzkLiveChannel {
 
-    @NotNull String getId();
+    private String channelId;
+    private String channelName;
+    private String channelImageUrl;
+    private boolean verifiedMark;
 
-    @NotNull String getName();
+    public @NotNull String getId() {
+        return channelId;
+    }
 
-    @NotNull String getImageUrl();
+    public @NotNull String getName() {
+        return channelName;
+    }
 
-    boolean hasVerifiedMark();
+    public @NotNull String getImageUrl() {
+        return channelImageUrl;
+    }
+
+    public boolean hasVerifiedMark() {
+        return verifiedMark;
+    }
+
+    @Override
+    public String toString() {
+        return "ChzzkLiveChannelImpl{" +
+                "channelId='" + channelId + '\'' +
+                ", channelName='" + channelName + '\'' +
+                ", channelImageUrl='" + channelImageUrl + '\'' +
+                ", verifiedMark=" + verifiedMark +
+                '}';
+    }
 
 }
