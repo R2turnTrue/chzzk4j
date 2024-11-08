@@ -3,9 +3,15 @@ package xyz.r2turntrue.chzzk4j.types.channel.live;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 public class ChzzkLiveDetail extends ChzzkLiveStatus {
+
+    private transient final @NotNull DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private transient @NotNull ZoneId zoneId = ZoneId.of("Asia/Seoul");
 
     private int liveId;
     private String liveImageUrl;
@@ -26,18 +32,20 @@ public class ChzzkLiveDetail extends ChzzkLiveStatus {
         return Optional.ofNullable(defaultThumbnailImageUrl);
     }
 
-    public @NotNull Optional<LocalDateTime> getOpenDate() {
+    public @NotNull Optional<ZonedDateTime> getOpenDate() {
         if (openDate == null) {
             return Optional.empty();
         }
-        return Optional.of(LocalDateTime.parse(openDate));
+        ZonedDateTime date = LocalDateTime.parse(openDate, formatter).atZone(zoneId);
+        return Optional.of(date);
     }
 
-    public @NotNull Optional<LocalDateTime> getCloseDate() {
+    public @NotNull Optional<ZonedDateTime> getCloseDate() {
         if (closeDate == null) {
             return Optional.empty();
         }
-        return Optional.of(LocalDateTime.parse(closeDate));
+        ZonedDateTime date = LocalDateTime.parse(closeDate, formatter).atZone(zoneId);
+        return Optional.of(date);
     }
 
     public @NotNull ChzzkLiveChannel getLiveChannel() {
