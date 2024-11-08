@@ -111,6 +111,12 @@ public class Chzzk {
         return channel;
     }
 
+    /**
+     * Get {@link ChzzkLiveStatus} by the channel id.
+     * @param channelId ID of {@link ChzzkChannel}
+     * @return {@link ChzzkLiveStatus} of the channel
+     * @throws IOException if the request to API failed
+     */
     public @NotNull ChzzkLiveStatus getLiveStatus(@NotNull String channelId) throws IOException {
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,
@@ -120,6 +126,12 @@ public class Chzzk {
         return gson.fromJson(contentJson, ChzzkLiveStatus.class);
     }
 
+    /**
+     * Get {@link ChzzkLiveDetail} by the channel id.
+     * @param channelId ID of {@link ChzzkChannel}
+     * @return {@link ChzzkLiveDetail} of the channel
+     * @throws IOException if the request to API failed
+     */
     public @NotNull ChzzkLiveDetail getLiveDetail(@NotNull String channelId) throws IOException {
         JsonElement contentJson = RawApiUtils.getContentJson(
                 httpClient,

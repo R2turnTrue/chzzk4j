@@ -20,18 +20,31 @@ public class ChzzkLiveDetail extends ChzzkLiveStatus {
     private String closeDate;
     private ChzzkLiveChannel channel;
 
+    /**
+     * Get unique ID number of the live stream.
+     */
     public int getLiveId() {
         return liveId;
     }
 
+    /**
+     * Get URL of the automatically generated thumbnail image.
+     * @param resolution Image {@link Resolution}
+     */
     public @NotNull String getLiveImageUrl(@NotNull Resolution resolution) {
         return liveImageUrl.replace("{type}", resolution.getRawAsString());
     }
 
+    /**
+     * Get default thumbnail image URL.
+     */
     public @NotNull Optional<String> getDefaultThumbnailImageUrl() {
         return Optional.ofNullable(defaultThumbnailImageUrl);
     }
 
+    /**
+     * Get start time of the live stream.
+     */
     public @NotNull Optional<ZonedDateTime> getOpenDate() {
         if (openDate == null) {
             return Optional.empty();
@@ -40,6 +53,9 @@ public class ChzzkLiveDetail extends ChzzkLiveStatus {
         return Optional.of(date);
     }
 
+    /**
+     * Get close time of the live stream.
+     */
     public @NotNull Optional<ZonedDateTime> getCloseDate() {
         if (closeDate == null) {
             return Optional.empty();
@@ -48,6 +64,9 @@ public class ChzzkLiveDetail extends ChzzkLiveStatus {
         return Optional.of(date);
     }
 
+    /**
+     * Get live stream channel.
+     */
     public @NotNull ChzzkLiveChannel getLiveChannel() {
         return channel;
     }
