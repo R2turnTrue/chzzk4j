@@ -22,8 +22,8 @@ public class ChzzkLiveDetail extends ChzzkLiveStatus {
         return liveImageUrl.replace("{type}", resolution.getRawAsString());
     }
 
-    public @NotNull String getDefaultThumbnailImageUrl() {
-        return defaultThumbnailImageUrl;
+    public @NotNull Optional<String> getDefaultThumbnailImageUrl() {
+        return Optional.ofNullable(defaultThumbnailImageUrl);
     }
 
     public @NotNull Optional<LocalDateTime> getOpenDate() {

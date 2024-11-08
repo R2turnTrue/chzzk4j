@@ -3,6 +3,7 @@ package xyz.r2turntrue.chzzk4j.types.channel.live;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ChzzkLiveStatus {
 
@@ -63,12 +64,12 @@ public class ChzzkLiveStatus {
         return List.copyOf(tags);
     }
 
-    public @NotNull String getCategoryType() {
-        return categoryType;
+    public @NotNull Optional<String> getCategoryType() {
+        return Optional.ofNullable(categoryType);
     }
 
-    public @NotNull String getLiveCategory() {
-        return liveCategory;
+    public @NotNull Optional<String> getLiveCategory() {
+        return Optional.ofNullable(liveCategory);
     }
 
     public @NotNull String getLiveCategoryValue() {
