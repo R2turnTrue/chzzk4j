@@ -11,7 +11,7 @@ import java.util.Optional;
 public class ChzzkLiveDetail extends ChzzkLiveStatus {
 
     private transient final @NotNull DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private transient @NotNull ZoneId zoneId = ZoneId.of("Asia/Seoul");
+    private final transient @NotNull ZoneId zoneId = ZoneId.of("Asia/Seoul");
 
     private int liveId;
     private String liveImageUrl;
