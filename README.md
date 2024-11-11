@@ -148,6 +148,17 @@ Thread.sleep(700000);
 chat.closeBlocking();
 ```
 
+## Naver Login
+Naver login requires Selenium and ChromeDriver configuration.
+
+1. Click [here](https://googlechromelabs.github.io/chrome-for-testing/) to move ChromeDriver download page.
+2. Add ChromeDriver path to system property
+```java
+void doSomething() {
+    Chrome.setDriverProperty("Your ChromeDriver path");
+}
+```
+
 ## features
 
 - [x] get channel information & rules
