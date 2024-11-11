@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.jetbrains.annotations.NotNull;
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat;
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChatBuilder;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
@@ -15,6 +16,7 @@ import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
 import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollowingData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelRules;
+import xyz.r2turntrue.chzzk4j.types.channel.live.*;
 import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
@@ -107,6 +109,36 @@ public class Chzzk {
         }
 
         return channel;
+    }
+
+    /**
+     * Get {@link ChzzkLiveStatus} by the channel id.
+     * @param channelId ID of {@link ChzzkChannel}
+     * @return {@link ChzzkLiveStatus} of the channel
+     * @throws IOException if the request to API failed
+     */
+    public @NotNull ChzzkLiveStatus getLiveStatus(@NotNull String channelId) throws IOException {
+        JsonElement contentJson = RawApiUtils.getContentJson(
+                httpClient,
+                RawApiUtils.httpGetRequest(API_URL + "/polling/v2/channels/" + channelId + "/live-status").build(),
+                isDebug);
+
+        return gson.fromJson(contentJson, ChzzkLiveStatus.class);
+    }
+
+    /**
+     * Get {@link ChzzkLiveDetail} by the channel id.
+     * @param channelId ID of {@link ChzzkChannel}
+     * @return {@link ChzzkLiveDetail} of the channel
+     * @throws IOException if the request to API failed
+     */
+    public @NotNull ChzzkLiveDetail getLiveDetail(@NotNull String channelId) throws IOException {
+        JsonElement contentJson = RawApiUtils.getContentJson(
+                httpClient,
+                RawApiUtils.httpGetRequest(API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(),
+                isDebug);
+
+        return gson.fromJson(contentJson, ChzzkLiveDetail.class);
     }
 
     /**
