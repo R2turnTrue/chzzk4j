@@ -148,6 +148,12 @@ Thread.sleep(700000);
 chat.closeBlocking();
 ```
 
+### get live details/status
+```java
+chzzk.getLiveStatus("Channel ID");
+chzzk.getLiveDetail("Channel ID");
+```
+
 ## Naver Login
 Naver login requires Selenium and ChromeDriver configuration.
 
@@ -181,12 +187,13 @@ void authorizeChzzkAutomatically() {
 - [x] get recommendation channels
 - [x] fix invalid json (chat)
 - [x] load emoji pack
+- [x] get live status
+- [x] get live detail
 
 ### need to implement
 
+- [ ] write javadocs of all methods/classes/etc..
 - [ ] parse emoji from chat message
 - [ ] get following channels of user that logged in
 - [ ] get video information
-- [ ] get live status
-- [ ] get live detail
 - [ ] get cheese ranking
