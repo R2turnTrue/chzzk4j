@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.R2turnTrue"
-version = "0.0.11"
+version = "0.0.12"
 
 val publishProps = Properties()
 publishProps.load(
@@ -51,7 +51,7 @@ publishing {
             artifactId = "chzzk4j"
             groupId = "io.github.R2turnTrue"
 
-            version = "0.0.11"
+            version = "0.0.12"
 
             from(components["java"])
 
