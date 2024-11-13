@@ -1,5 +1,7 @@
 package xyz.r2turntrue.chzzk4j;
 
+import xyz.r2turntrue.chzzk4j.naver.Naver;
+
 /**
  * Class for creating instances of {@link Chzzk}.
  */
@@ -40,6 +42,15 @@ public class ChzzkBuilder {
         this.isAnonymous = false;
 
         return this;
+    }
+
+    /**
+     * Add authorize token (NID_AUT and NID_SES) automatically by {@link Naver}.
+     *
+     * @param naver The authorized naver object
+     */
+    public ChzzkBuilder withAuthorization(Naver naver) {
+        return withAuthorization(naver.getCookie(Naver.Cookie.NID_AUT), naver.getCookie(Naver.Cookie.NID_SES));
     }
 
     public Chzzk build() {
