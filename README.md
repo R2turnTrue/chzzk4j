@@ -159,6 +159,19 @@ void doSomething() {
 }
 ```
 
+```java
+void authorizeChzzkAutomatically() {
+    Naver naver = new Naver("Naver ID", "Naver Password");
+    naver.login().thenRun(() -> {
+        Chzzk chzzk = new ChzzkBuilder()
+                .withAuthorization(naver)
+                .build();
+
+        System.out.println(chzzk.getLoggedUser());
+    }).join();
+}
+```
+
 ## features
 
 - [x] get channel information & rules
