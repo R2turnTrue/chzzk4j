@@ -46,6 +46,10 @@ public class Naver {
                 WebElement loginBtn = driver.findElement(By.id("log.login"));
                 loginBtn.click();
 
+                // Wait until the specific cookies are available
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+                wait.until(driver1 -> driver1.manage().getCookieNamed("NID_AUT") != null);
+
                 // Find cookies
                 cookies.clear();
                 for (Cookie key : Cookie.values()) {
