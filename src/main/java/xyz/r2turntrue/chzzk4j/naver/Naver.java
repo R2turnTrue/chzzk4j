@@ -1,11 +1,13 @@
 package xyz.r2turntrue.chzzk4j.naver;
 
 import com.google.common.collect.Maps;
+import java.time.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import xyz.r2turntrue.chzzk4j.util.Chrome;
 
 import java.util.Map;
@@ -45,6 +47,10 @@ public class Naver {
                 // Click login button
                 WebElement loginBtn = driver.findElement(By.id("log.login"));
                 loginBtn.click();
+
+                // Wait until the specific cookies are available
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+                wait.until(driver1 -> driver1.manage().getCookieNamed("NID_AUT") != null);
 
                 // Find cookies
                 cookies.clear();
