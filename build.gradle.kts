@@ -34,6 +34,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.java-websocket:Java-WebSocket:1.5.5")
     implementation("org.seleniumhq.selenium:selenium-java:4.26.0")
+    implementation("io.github.bonigarcia:webdrivermanager:5.9.2")
 }
 
 tasks.test {

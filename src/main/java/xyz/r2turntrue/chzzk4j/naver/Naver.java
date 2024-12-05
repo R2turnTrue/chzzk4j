@@ -1,11 +1,13 @@
 package xyz.r2turntrue.chzzk4j.naver;
 
 import com.google.common.collect.Maps;
+import java.time.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import xyz.r2turntrue.chzzk4j.util.Chrome;
 
 import java.util.Map;
