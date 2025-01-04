@@ -1,4 +1,5 @@
-![](../image/banner.png)
+![](../image/banner.png)\
+
 ![](https://img.shields.io/maven-central/v/io.github.R2turnTrue/chzzk4j) /
 [Example Minecraft Plugin](https://github.com/R2turnTrue/chzzk4j_demo) /
 [Discord Server](https://discord.gg/gtJ265XZWn)
