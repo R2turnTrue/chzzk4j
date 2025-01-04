@@ -11,18 +11,25 @@ public class ChzzkClientBuilder {
     String nidAuth;
     String nidSession;
 
-    String apiClientId;
-    String apiSecret;
+    String apiClientId = null;
+    String apiSecret = null;
 
     ChzzkLoginAdapter loginAdapter;
 
     /**
-     * Creates a new {@link ChzzkClientBuilder} that not logged in.
+     * Creates a new {@link ChzzkClientBuilder} with API Key.
      */
     public ChzzkClientBuilder(String apiClientId, String apiSecret) {
         this.isAnonymous = true;
         this.apiClientId = apiClientId;
         this.apiSecret = apiSecret;
+    }
+
+    /**
+     * Creates a new {@link ChzzkClientBuilder} without API Key.
+     */
+    public ChzzkClientBuilder() {
+        this.isAnonymous = true;
     }
 
     public ChzzkClientBuilder withDebugMode() {

@@ -1,6 +1,8 @@
 ![](image/banner.png)
 # chzzk4j
 
+* **0.0.12 이하 버전을 사용하신다면, [과거 버전의 문서](https://github.com/R2turnTrue/chzzk4j/blob/2a5936c9570220957c3ef4f13462d12d4d19e4ff/README.md) 파일을 확인해주세요!**
+
 ![](https://img.shields.io/maven-central/v/io.github.R2turnTrue/chzzk4j) / 
 [Example Minecraft Plugin](https://github.com/R2turnTrue/chzzk4j_demo) / 
 [Discord Server](https://discord.gg/gtJ265XZWn)

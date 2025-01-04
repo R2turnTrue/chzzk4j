@@ -37,6 +37,10 @@ public class ChzzkClient {
     private boolean isAnonymous;
     private boolean isLoggedIn;
 
+    private String apiClientId;
+    private String apiSecret;
+    private boolean hasApiKey = false;
+
     private ChzzkLoginAdapter loginAdapter;
     private ChzzkLoginResult loginResult;
     private OkHttpClient httpClient;
@@ -60,6 +64,12 @@ public class ChzzkClient {
     ChzzkClient(ChzzkClientBuilder chzzkBuilder) {
         this.isAnonymous = chzzkBuilder.isAnonymous;
         this.gson = new Gson();
+
+        if (chzzkBuilder.apiClientId != null && chzzkBuilder.apiSecret != null) {
+            hasApiKey = true;
+            apiClientId = chzzkBuilder.apiClientId;
+            apiSecret = chzzkBuilder.apiSecret;
+        }
 
         if (!isAnonymous) {
             loginAdapter = chzzkBuilder.loginAdapter;
