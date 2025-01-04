@@ -25,7 +25,7 @@ dependencies {
 ```
 
 ## usage
-Check at [our docs](https://r2turntrue.github.io/chzzk4j)!
+Check at [our docs](https://r2turntrue.gitbook.io/chzzk4j)!
 
 ## examples
 ### minimal chat example
