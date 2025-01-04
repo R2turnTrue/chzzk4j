@@ -1,4 +1,4 @@
-![](docs/banner.png)
+![](image/banner.png)
 # chzzk4j
 
 ![](https://img.shields.io/maven-central/v/io.github.R2turnTrue/chzzk4j) / 
