@@ -11,11 +11,11 @@
 ```java
 ChzzkLegacyLoginAdapter adapter = new ChzzkLegacyLoginAdapter("NID_AUT", "NID_SES");
 
-ChzzkClient chzzk = new ChzzkClientBuilder("API_CLIENT_ID", "API_SECRET")
+ChzzkClient client = new ChzzkClientBuilder("API_CLIENT_ID", "API_SECRET")
         .withLoginAdapter(adapter)
         .build();
 
-chzzk.loginAsync().join();
+client.loginAsync().join();
 ```
 
 ## WebDriver를 이용하는 방법

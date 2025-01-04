@@ -1,6 +1,8 @@
 # Installation
-chzzk4j와 그 하위 의존성을 관리하기 위해 의존성 관리 도구를 사용하는 것을 추천합니다.
+`chzzk4j`와 그 하위 의존성을 관리하기 위해 의존성 관리 도구를 사용하는 것을 추천합니다.
+
 ![](https://img.shields.io/maven-central/v/io.github.R2turnTrue/chzzk4j)
+
 {% tabs %}
 {% tab title="Gradle" %}
 ```groovy

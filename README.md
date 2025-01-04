@@ -30,9 +30,9 @@ Check at [our docs](https://r2turntrue.github.io/chzzk4j)!
 ## examples
 ### minimal chat example
 ```java
-ChzzkClient chzzk = new ChzzkClientBuilder("API_CLIENT_ID", "API_SECRET")
+ChzzkClient client = new ChzzkClientBuilder("API_CLIENT_ID", "API_SECRET")
         .build();
-ChzzkChat chat = new ChzzkChatBuilder(chzzk,
+ChzzkChat chat = new ChzzkChatBuilder(client,
         "CHANNEL_ID")
         .build();
 
