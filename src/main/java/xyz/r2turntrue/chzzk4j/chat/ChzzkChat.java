@@ -1,7 +1,8 @@
 package xyz.r2turntrue.chzzk4j.chat;
 
 import com.google.gson.JsonElement;
-import xyz.r2turntrue.chzzk4j.Chzzk;
+import xyz.r2turntrue.chzzk4j.ChzzkClient;
+import xyz.r2turntrue.chzzk4j.chat.event.ChzzkEvent;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
@@ -10,15 +11,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.AlreadyConnectedException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class ChzzkChat {
     boolean reconnecting;
-    Chzzk chzzk;
+    ChzzkClient chzzk;
 
     boolean isConnectedToWebsocket = false;
     private ChatWebsocketClient client;
-    ArrayList<ChatEventListener> listeners = new ArrayList<>();
+
+    HashMap<Class<? extends ChzzkEvent>, ArrayList<Consumer<? extends ChzzkEvent>>> handlerMap = new HashMap<>();
 
     String accessToken;
     String userId;
@@ -43,10 +48,28 @@ public class ChzzkChat {
         return channelId;
     }
 
-    ChzzkChat(Chzzk chzzk, String channelId, boolean autoReconnect) {
+    ChzzkChat(ChzzkClient chzzk, String channelId, boolean autoReconnect) {
         this.chzzk = chzzk;
         this.channelId = channelId;
         this.autoReconnect = autoReconnect;
+    }
+
+    public <T extends ChzzkEvent> void on(Class<T> clazz, Consumer<T> action) {
+        if (!handlerMap.containsKey(clazz)) {
+            handlerMap.put(clazz, new ArrayList<>());
+        }
+
+        handlerMap.get(clazz).add(action);
+    }
+
+    public <T extends ChzzkEvent> void emit(Class<T> clazz, T obj) {
+        if (handlerMap.containsKey(clazz)) {
+            for (Consumer<? extends ChzzkEvent> handler : handlerMap.get(clazz)) {
+                @SuppressWarnings("unchecked")
+                Consumer<T> specificHandler = (Consumer<T>) handler;
+                specificHandler.accept(obj);
+            }
+        }
     }
 
     /**
@@ -61,14 +84,6 @@ public class ChzzkChat {
      */
     public void connectBlocking() {
         connectFromChannelId(channelId, autoReconnect).join();
-    }
-
-    @Deprecated
-    /**
-     * @deprecated Please add listeners when build {@link ChzzkChat} by {@link ChzzkChatBuilder}
-     */
-    public void addListener(ChatEventListener listener) {
-        listeners.add(listener);
     }
 
     public void requestRecentChat(int chatCount) {
@@ -93,13 +108,13 @@ public class ChzzkChat {
      * @param channelId channel id to connect.
      * @param autoReconnect should reconnect automatically when disconnected by the server.
      * @throws IOException when failed to connect to the chat
-     * @throws UnsupportedOperationException when failed to fetch chatChannelId! (Try to put NID_SES/NID_AUT when create {@link Chzzk}, because it's mostly caused by age restriction)
+     * @throws UnsupportedOperationException when failed to fetch chatChannelId! (Try to put NID_SES/NID_AUT when create {@link ChzzkClient}, because it's mostly caused by age restriction)
      */
     private CompletableFuture<Void> connectFromChannelId(String channelId, boolean autoReconnect) {
         return CompletableFuture.runAsync(() -> {
             try {
                 JsonElement chatIdRaw = RawApiUtils.getContentJson(chzzk.getHttpClient(),
-                                RawApiUtils.httpGetRequest(Chzzk.API_URL + "/service/v3/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
+                                RawApiUtils.httpGetRequest(ChzzkClient.API_URL + "/service/v3/channels/" + channelId + "/live-detail").build(), chzzk.isDebug)
                         .getAsJsonObject()
                         .get("chatChannelId");
 
@@ -132,12 +147,12 @@ public class ChzzkChat {
 
                 userId = "";
                 try {
-                    ChzzkUser user = chzzk.getLoggedUser();
+                    ChzzkUser user = chzzk.fetchLoggedUser();
                     userId = user.getUserId();
                 } catch (NotLoggedInException e) {
                 }
 
-                String accessTokenUrl = Chzzk.GAME_API_URL +
+                String accessTokenUrl = ChzzkClient.GAME_API_URL +
                         "/v1/chats/access-token?channelId=" + chatId +
                         "&chatType=STREAMING";
                 accessToken = RawApiUtils.getContentJson(

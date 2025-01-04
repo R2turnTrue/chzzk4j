@@ -16,7 +16,7 @@ public class LiveApiTest extends ChzzkTestBase {
     public void testChzzkLiveStatusGet() {
         AtomicReference<ChzzkLiveStatus> status = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() -> {
-            status.set(chzzk.getLiveStatus(CHANNEL_TO_TEST));
+            status.set(chzzk.fetchLiveStatus(CHANNEL_TO_TEST));
         });
         System.out.println(status);
     }
@@ -24,7 +24,7 @@ public class LiveApiTest extends ChzzkTestBase {
     @Test
     public void testInvalidChzzkLiveStatusGet() {
         Assertions.assertThrowsExactly(IOException.class, () -> {
-            chzzk.getLiveStatus(INVALID_CHANNEL_TO_TEST);
+            chzzk.fetchLiveStatus(INVALID_CHANNEL_TO_TEST);
         });
     }
 
@@ -32,7 +32,7 @@ public class LiveApiTest extends ChzzkTestBase {
     public void testChzzkLiveDetailGet() {
         AtomicReference<ChzzkLiveDetail> detail = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() -> {
-            detail.set(chzzk.getLiveDetail(CHANNEL_TO_TEST));
+            detail.set(chzzk.fetchLiveDetail(CHANNEL_TO_TEST));
         });
         System.out.println(detail);
     }
@@ -40,7 +40,7 @@ public class LiveApiTest extends ChzzkTestBase {
     @Test
     public void testInvalidChzzkLiveDetailGet() {
         Assertions.assertThrowsExactly(IOException.class, () -> {
-            chzzk.getLiveDetail(INVALID_CHANNEL_TO_TEST);
+            chzzk.fetchLiveDetail(INVALID_CHANNEL_TO_TEST);
         });
     }
 

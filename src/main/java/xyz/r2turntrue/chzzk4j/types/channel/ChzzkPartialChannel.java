@@ -1,7 +1,7 @@
 package xyz.r2turntrue.chzzk4j.types.channel;
 
 import org.jetbrains.annotations.Nullable;
-import xyz.r2turntrue.chzzk4j.Chzzk;
+import xyz.r2turntrue.chzzk4j.ChzzkClient;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 
@@ -24,8 +24,8 @@ public class ChzzkPartialChannel {
      * @throws IOException if the request to API failed
      * @throws NotExistsException if the channel doesn't exists or the rules of the channel doesn't available
      */
-    public ChzzkChannelRules getRules(Chzzk chzzk) throws IOException, NotExistsException {
-        return chzzk.getChannelChatRules(channelId);
+    public ChzzkChannelRules getRules(ChzzkClient chzzk) throws IOException, NotExistsException {
+        return chzzk.fetchChannelChatRules(channelId);
     }
 
     /**

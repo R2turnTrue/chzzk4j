@@ -6,33 +6,35 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
+import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
 import xyz.r2turntrue.chzzk4j.util.Chrome;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class Naver {
+public class NaverAutologinAdapter implements ChzzkLoginAdapter {
 
     private final @NotNull String id;
     private final @NotNull String password;
-    private final @NotNull Map<Cookie, String> cookies;
+    private final @NotNull Map<NaverAutologinAdapter.Cookie, String> cookies;
 
     /**
      * Log in to Naver using ID and password.
      * @param id naver id
      * @param password password of the naver id
      */
-    public Naver(@NotNull String id, @NotNull String password) {
+    public NaverAutologinAdapter(@NotNull String id, @NotNull String password) {
         this.id = id;
         this.password = password;
         this.cookies = Maps.newConcurrentMap();
     }
 
-    /**
-     * Login to naver with id and password
-     */
-    public CompletableFuture<Void> login() {
-        return CompletableFuture.runAsync(() -> {
+    @Override
+    public CompletableFuture<ChzzkLoginResult> authorize() {
+        return CompletableFuture.supplyAsync(() -> {
             WebDriver driver = Chrome.getDriver();
             driver.get("https://nid.naver.com/nidlogin.login");
             try {
@@ -46,9 +48,13 @@ public class Naver {
                 WebElement loginBtn = driver.findElement(By.id("log.login"));
                 loginBtn.click();
 
+                // Wait until the specific cookies are available
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+                wait.until(driver1 -> driver1.manage().getCookieNamed("NID_AUT") != null);
+
                 // Find cookies
                 cookies.clear();
-                for (Cookie key : Cookie.values()) {
+                for (NaverAutologinAdapter.Cookie key : NaverAutologinAdapter.Cookie.values()) {
                     org.openqa.selenium.Cookie cookie = driver.manage().getCookieNamed(key.toString());
                     if (cookie != null) {
                         cookies.put(key, cookie.getValue());
@@ -59,6 +65,13 @@ public class Naver {
             } finally {
                 driver.quit();
             }
+
+            return new ChzzkLoginResult(
+                    getCookie(Cookie.NID_AUT),
+                    getCookie(Cookie.NID_SES),
+                    null,
+                    null,
+                    -1);
         });
     }
 
@@ -73,14 +86,13 @@ public class Naver {
     /**
      * If logged into Naver, it returns the cookie value.
      * If not logged in, it returns an empty string.
-     * @param key {@link Cookie}
+     * @param key {@link NaverAutologinAdapter.Cookie}
      */
-    public @NotNull String getCookie(@NotNull Naver.Cookie key) {
+    public @NotNull String getCookie(@NotNull NaverAutologinAdapter.Cookie key) {
         return cookies.getOrDefault(key, "");
     }
 
     public enum Cookie {
         NID_AUT, NID_SES
     }
-
 }

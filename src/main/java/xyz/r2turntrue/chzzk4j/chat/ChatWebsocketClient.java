@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import xyz.r2turntrue.chzzk4j.chat.event.*;
 import xyz.r2turntrue.chzzk4j.exception.ChatFailedConnectException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -64,22 +65,21 @@ public class ChatWebsocketClient extends WebSocketClient {
     }
 
     private void processChatMessage(ChatMessage msg) {
-        for (ChatEventListener listener : chat.listeners) {
-            //System.out.println("CC: " + msg.chatTypeCode);
-            if (msg.msgTypeCode == WsMessageTypes.ChatTypes.DONATION || msg.getExtras().getPayAmount() > 0)
-            {
-                DonationMessage donation = (DonationMessage) msg;
+        if (msg.msgTypeCode == WsMessageTypes.ChatTypes.DONATION || msg.getExtras().getPayAmount() > 0) {
+            DonationMessage donation = (DonationMessage) msg;
 
-                if (donation.extras.donationType.equalsIgnoreCase("MISSION"))
-                    listener.onMissionDonationChat((MissionDonationMessage) donation);
-                else
-                    listener.onDonationChat(donation);
-            }
-            else if (msg.msgTypeCode == WsMessageTypes.ChatTypes.SUBSCRIPTION)
-                listener.onSubscriptionChat((SubscriptionMessage) msg);
+            if (donation.extras.donationType.equalsIgnoreCase("MISSION"))
+                chat.emit(MissionDonationEvent.class,
+                        new MissionDonationEvent((MissionDonationMessage) donation));
             else
-                listener.onChat(msg);
-        }
+                chat.emit(NormalDonationEvent.class,
+                        new NormalDonationEvent(donation));
+        } else if (msg.msgTypeCode == WsMessageTypes.ChatTypes.SUBSCRIPTION)
+            chat.emit(SubscriptionMessageEvent.class,
+                    new SubscriptionMessageEvent((SubscriptionMessage) msg));
+        else
+            chat.emit(ChatMessageEvent.class,
+                    new ChatMessageEvent(msg));
     }
 
     @Override
@@ -103,20 +103,20 @@ public class ChatWebsocketClient extends WebSocketClient {
                 if (msg.retCode == 0) {
                     if (chat.chzzk.isDebug) System.out.println("Successfully connected!");
                     sid = msg.bdy.sid;
-                    for (ChatEventListener listener : chat.listeners) {
-                        listener.onConnect(chat, chat.reconnecting);
-                    }
+
+                    chat.emit(ConnectEvent.class,
+                            new ConnectEvent(chat, chat.reconnecting));
 
                     Runnable task = () -> {
-                        if(System.currentTimeMillis() - lastSendPingTime >= 60000 || // 1 minutes from last ping time
-                            System.currentTimeMillis() - lastRecivedMessageTime >= 20000) { // 20 seconds later from last message
+                        if (System.currentTimeMillis() - lastSendPingTime >= 60000 || // 1 minutes from last ping time
+                                System.currentTimeMillis() - lastRecivedMessageTime >= 20000) { // 20 seconds later from last message
                             if (chat.chzzk.isDebug) {
                                 System.out.println("need client ping: current = " + (System.currentTimeMillis() / 1000) +
-                                        ", ping = " + (lastSendPingTime / 1000)  +
-                                        ", recived message = " + (lastRecivedMessageTime/1000));
+                                        ", ping = " + (lastSendPingTime / 1000) +
+                                        ", recived message = " + (lastRecivedMessageTime / 1000));
                             }
 
-                            if(isOpen()) {
+                            if (isOpen()) {
                                 this.send(gson.toJson(new WsMessageServerboundPing()));
                             }
 
@@ -187,9 +187,7 @@ public class ChatWebsocketClient extends WebSocketClient {
             }
 
         } catch (Exception ex) {
-            for (ChatEventListener listener : chat.listeners) {
-                listener.onError(ex);
-            }
+            chat.emit(ErrorEvent.class, new ErrorEvent(ex));
         }
     }
 
@@ -199,9 +197,8 @@ public class ChatWebsocketClient extends WebSocketClient {
 
         boolean shouldReconnect = remote && chat.autoReconnect;
 
-        for (ChatEventListener listener : chat.listeners) {
-            listener.onConnectionClosed(code, reason, remote, shouldReconnect);
-        }
+        chat.emit(ConnectionClosedEvent.class,
+                new ConnectionClosedEvent(code, reason, remote, shouldReconnect));
 
         if (chat.chzzk.isDebug) {
             System.out.println("Websocket connection closed.");
@@ -220,9 +217,7 @@ public class ChatWebsocketClient extends WebSocketClient {
 
     @Override
     public void onError(Exception ex) {
-        for (ChatEventListener listener : chat.listeners) {
-            listener.onError(ex);
-        }
+        chat.emit(ErrorEvent.class, new ErrorEvent(ex));
     }
 
     public void sendChat(String content) {
