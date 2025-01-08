@@ -1,5 +1,6 @@
-import xyz.r2turntrue.chzzk4j.Chzzk;
-import xyz.r2turntrue.chzzk4j.ChzzkBuilder;
+import xyz.r2turntrue.chzzk4j.ChzzkClient;
+import xyz.r2turntrue.chzzk4j.ChzzkClientBuilder;
+import xyz.r2turntrue.chzzk4j.auth.ChzzkLegacyLoginAdapter;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,8 +9,11 @@ import java.util.Properties;
 public class ChzzkTestBase {
     Properties properties = new Properties();
     String currentUserId = "";
-    Chzzk chzzk;
-    Chzzk loginChzzk;
+    ChzzkClient chzzk;
+    ChzzkClient loginChzzk;
+
+    String apiClientId;
+    String apiSecret;
 
     public ChzzkTestBase() {
         try {
@@ -19,12 +23,21 @@ public class ChzzkTestBase {
         }
 
         currentUserId = properties.getProperty("CURRENT_USER_ID");
-        chzzk = new ChzzkBuilder()
+
+        apiClientId = properties.getProperty("API_CLIENT_ID");
+        apiSecret = properties.getProperty("API_SECRET");
+        ChzzkLegacyLoginAdapter adapter = new ChzzkLegacyLoginAdapter(
+                properties.getProperty("NID_AUT"),
+                properties.getProperty("NID_SES")
+        );
+
+        chzzk = new ChzzkClientBuilder(apiClientId, apiSecret)
                 .withDebugMode()
                 .build();
-        loginChzzk = new ChzzkBuilder()
+        loginChzzk = new ChzzkClientBuilder(apiClientId, apiSecret)
                 .withDebugMode()
-                .withAuthorization(properties.getProperty("NID_AUT"), properties.getProperty("NID_SES"))
+                .withLoginAdapter(adapter)
                 .build();
+        loginChzzk.loginAsync();
     }
 }

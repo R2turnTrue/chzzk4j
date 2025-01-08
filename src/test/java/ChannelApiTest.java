@@ -1,16 +1,11 @@
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import xyz.r2turntrue.chzzk4j.Chzzk;
-import xyz.r2turntrue.chzzk4j.ChzzkBuilder;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
@@ -33,7 +28,7 @@ public class ChannelApiTest extends ChzzkTestBase {
     void gettingNormalChannelInfo() throws IOException {
         AtomicReference<ChzzkChannel> channel = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() ->
-                channel.set(chzzk.getChannel(FOLLOWED_CHANNEL_2)));
+                channel.set(chzzk.fetchChannel(FOLLOWED_CHANNEL_2)));
 
         System.out.println(channel);
     }
@@ -41,7 +36,7 @@ public class ChannelApiTest extends ChzzkTestBase {
     @Test
     void gettingInvalidChannelInfo() throws IOException {
         Assertions.assertThrowsExactly(ChannelNotExistsException.class, () -> {
-            chzzk.getChannel("invalidchannelid");
+            chzzk.fetchChannel("invalidchannelid");
         });
     }
 
@@ -49,7 +44,7 @@ public class ChannelApiTest extends ChzzkTestBase {
     void gettingNormalChannelRules() throws IOException {
         AtomicReference<ChzzkChannelRules> rule = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() ->
-                rule.set(chzzk.getChannelChatRules(FOLLOWED_CHANNEL_1)));
+                rule.set(chzzk.fetchChannelChatRules(FOLLOWED_CHANNEL_1)));
 
         System.out.println(rule);
     }
@@ -57,28 +52,28 @@ public class ChannelApiTest extends ChzzkTestBase {
     @Test
     void gettingInvalidChannelRules() throws IOException {
         Assertions.assertThrowsExactly(NotExistsException.class, () -> {
-            chzzk.getChannelChatRules("invalidchannel or no rule channel");
+            chzzk.fetchChannelChatRules("invalidchannel or no rule channel");
         });
     }
 
     @Test
     void gettingFollowStatusAnonymous() throws IOException {
         Assertions.assertThrowsExactly(NotLoggedInException.class, () ->
-                chzzk.getFollowingStatus("FOLLOWED_CHANNEL_1"));
+                chzzk.fetchFollowingStatus("FOLLOWED_CHANNEL_1"));
     }
 
     @Test
     void gettingFollowStatus() throws IOException {
         AtomicReference<ChzzkChannelFollowingData> followingStatus = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() ->
-                followingStatus.set(loginChzzk.getFollowingStatus(FOLLOWED_CHANNEL_1)));
+                followingStatus.set(loginChzzk.fetchFollowingStatus(FOLLOWED_CHANNEL_1)));
 
         System.out.println(followingStatus);
 
         Assertions.assertEquals(followingStatus.get().isFollowing(), true);
 
         Assertions.assertDoesNotThrow(() ->
-                followingStatus.set(loginChzzk.getFollowingStatus(UNFOLLOWED_CHANNEL)));
+                followingStatus.set(loginChzzk.fetchFollowingStatus(UNFOLLOWED_CHANNEL)));
 
         System.out.println(followingStatus);
 
@@ -87,14 +82,14 @@ public class ChannelApiTest extends ChzzkTestBase {
 
     @Test
     void gettingUserInfo() throws IOException, NotLoggedInException {
-        ChzzkUser currentUser = loginChzzk.getLoggedUser();
+        ChzzkUser currentUser = loginChzzk.fetchLoggedUser();
         System.out.println(currentUser);
         Assertions.assertEquals(currentUser.getUserId(), currentUserId);
     }
 
     @Test
     void gettingRecommendationChannels() throws IOException, NotLoggedInException {
-        ChzzkRecommendationChannels channels = loginChzzk.getRecommendationChannels();
+        ChzzkRecommendationChannels channels = loginChzzk.fetchRecommendationChannels();
         System.out.println(channels);
     }
 }
