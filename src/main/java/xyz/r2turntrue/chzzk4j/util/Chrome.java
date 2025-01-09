@@ -1,5 +1,6 @@
 package xyz.r2turntrue.chzzk4j.util;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -22,6 +23,7 @@ public class Chrome {
      */
     public static WebDriver getDriver() {
         try {
+            WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless");
             options.addArguments("--disable-gpu");
