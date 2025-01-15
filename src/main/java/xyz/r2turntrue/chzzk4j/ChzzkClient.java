@@ -7,8 +7,6 @@ import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
-import xyz.r2turntrue.chzzk4j.chat.ChzzkChat;
-import xyz.r2turntrue.chzzk4j.chat.ChzzkChatBuilder;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
@@ -279,10 +277,24 @@ public class ChzzkClient {
         ChzzkUser user = gson.fromJson(
                 contentJson,
                 ChzzkUser.class);
-
         return user;
     }
 
+    public ChzzkChannel[] fetchFollowingChannels() throws IOException, NotLoggedInException {
+        if (isAnonymous) {
+            throw new NotLoggedInException("Can't get following channels without logging in!");
+        }
+
+        JsonElement contentJson = RawApiUtils.getContentJson(
+                httpClient,
+                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/following").build(),
+                isDebug);
+
+        ChzzkChannel[] channels = gson.fromJson(
+                contentJson,
+                ChzzkChannel[].class);
+        return channels;
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
