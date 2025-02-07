@@ -23,4 +23,28 @@ public class OauthLoginTest extends ChzzkTestBase {
         });
     }
 
+    @Test
+    public void testOauthRefresh() {
+        Assertions.assertDoesNotThrow(() -> {
+            var adapter = new ChzzkOauthLoginAdapter();
+
+            var client = new ChzzkClientBuilder(apiClientId, apiSecret)
+                    .withDebugMode()
+                    .withLoginAdapter(adapter)
+                    .build();
+
+            System.out.println(adapter.getAccountInterlockUrl(apiClientId, false));
+
+            client.loginAsync().join();
+
+            System.out.println(client.fetchLoggedUser());
+            System.out.println(client.getLoginResult());
+
+            client.refreshTokenAsync().join();
+
+            System.out.println(client.fetchLoggedUser());
+            System.out.println(client.getLoginResult());
+        });
+    }
+
 }

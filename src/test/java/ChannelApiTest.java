@@ -25,6 +25,10 @@ public class ChannelApiTest extends ChzzkTestBase {
     public final String FOLLOWED_CHANNEL_2 = "c2186ca6edb3a663f137b15ed7346fac"; // 리얼진짜우왁굳
     public final String UNFOLLOWED_CHANNEL = "22bd842599735ae19e454983280f611e"; // ENCHANT
 
+    public ChannelApiTest() {
+        super(true);
+    }
+
     @Test
     void gettingNormalChannelInfo() throws IOException {
         AtomicReference<ChzzkChannel> channel = new AtomicReference<>();

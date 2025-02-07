@@ -31,6 +31,8 @@ public class ChzzkOauthLoginAdapter implements ChzzkLoginAdapter {
     private String state;
     private String code;
 
+    private int expiresIn;
+
     private String accToken;
     private String refToken;
 
@@ -98,6 +100,7 @@ public class ChzzkOauthLoginAdapter implements ChzzkLoginAdapter {
 
                         accToken = respBody.accessToken();
                         refToken = respBody.refreshToken();
+                        expiresIn = respBody.expiresIn();
 
                         if (accToken == null || refToken == null) {
                             throw new Exception("access token or refresh token is null");
@@ -129,7 +132,7 @@ public class ChzzkOauthLoginAdapter implements ChzzkLoginAdapter {
                     null,
                     accToken,
                     refToken,
-                    -1
+                    expiresIn
             );
         });
     }

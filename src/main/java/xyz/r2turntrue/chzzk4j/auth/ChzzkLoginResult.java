@@ -70,4 +70,15 @@ public class ChzzkLoginResult {
     public int hashCode() {
         return Objects.hash(legacy_NID_AUT, legacy_NID_SES, accessToken, refreshToken, tokenExpiresIn);
     }
+
+    @Override
+    public String toString() {
+        return "ChzzkLoginResult{" +
+                "legacy_NID_AUT='" + legacy_NID_AUT + '\'' +
+                ", legacy_NID_SES='" + legacy_NID_SES + '\'' +
+                ", accessToken='" + accessToken + '\'' +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", tokenExpiresIn=" + tokenExpiresIn +
+                '}';
+    }
 }

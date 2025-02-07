@@ -8,6 +8,9 @@ import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
+import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRefreshRequestBody;
+import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRequestBody;
+import xyz.r2turntrue.chzzk4j.auth.oauth.TokenResponseBody;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
@@ -409,6 +412,57 @@ public class ChzzkClient {
                 ChzzkChannel[].class);
         return channels;
     }
+
+    public CompletableFuture<Void> refreshTokenAsync() throws NotLoggedInException {
+        if (isAnonymous) {
+            throw new NotLoggedInException("The client should be logged in to refresh token!");
+        }
+
+        if (loginResult.refreshToken() == null) {
+            throw new IllegalStateException("The refresh token should not be null to refresh token!");
+        }
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                var resp = RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/auth/v1/token",
+                        gson.toJson(new TokenRefreshRequestBody(
+                                "refresh_token",
+                                loginResult.refreshToken(),
+                                apiClientId,
+                                apiSecret
+                        ))).build(), isDebug);
+
+                var respBody = gson.fromJson(resp, TokenResponseBody.class);
+
+                if (isDebug) {
+                    System.out.println("-- Token Refresh!");
+                    System.out.println("AccToken: " + respBody.accessToken());
+                    System.out.println("RefToken: " + respBody.refreshToken());
+                    System.out.println("ExpiresIn: " + respBody.expiresIn());
+                }
+
+                var accToken = respBody.accessToken();
+                var refToken = respBody.refreshToken();
+                var expiresIn = respBody.expiresIn();
+
+                if (accToken == null || refToken == null) {
+                    throw new Exception("access token or refresh token is null");
+                }
+
+                this.loginResult._setAccessToken(accToken);
+                this.loginResult._setRefreshToken(refToken);
+                this.loginResult._setTokenExpiresIn(expiresIn);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        });
+    }
+
+    public ChzzkLoginResult getLoginResult() {
+        return loginResult;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

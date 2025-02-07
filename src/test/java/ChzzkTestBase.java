@@ -1,6 +1,7 @@
 import xyz.r2turntrue.chzzk4j.ChzzkClient;
 import xyz.r2turntrue.chzzk4j.ChzzkClientBuilder;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLegacyLoginAdapter;
+import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.naver.NaverAutologinAdapter;
 
 import java.io.FileInputStream;
@@ -17,6 +18,10 @@ public class ChzzkTestBase {
     String apiSecret;
 
     public ChzzkTestBase() {
+        this(false);
+    }
+
+    public ChzzkTestBase(boolean naverLogin) {
         try {
             properties.load(new FileInputStream("env.properties"));
         } catch (IOException e) {
@@ -37,12 +42,21 @@ public class ChzzkTestBase {
         );
          */
 
-        var naverId = properties.getProperty("NAVER_ID");
-        var naverPw = properties.getProperty("NAVER_PW");
-        NaverAutologinAdapter adapter = new NaverAutologinAdapter(
-                naverId,
-                naverPw
-        );
+        ChzzkLoginAdapter adapter;
+
+        if (naverLogin) {
+            var naverId = properties.getProperty("NAVER_ID");
+            var naverPw = properties.getProperty("NAVER_PW");
+            adapter = new NaverAutologinAdapter(
+                    naverId,
+                    naverPw
+            );
+        } else {
+            adapter = new ChzzkLegacyLoginAdapter(
+                    properties.getProperty("NID_AUT"),
+                    properties.getProperty("NID_SES")
+            );
+        }
 
         chzzk = new ChzzkClientBuilder(apiClientId, apiSecret)
                 .withDebugMode()
