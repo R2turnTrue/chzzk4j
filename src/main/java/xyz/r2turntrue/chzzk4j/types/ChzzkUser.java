@@ -17,6 +17,7 @@ public class ChzzkUser {
 
     private ChzzkUser() {}
 
+
     /**
      * Get the user has profile.
      */
