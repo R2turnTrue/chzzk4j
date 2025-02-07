@@ -3,10 +3,7 @@ package xyz.r2turntrue.chzzk4j.util;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import okhttp3.*;
 
 import java.io.IOException;
 
@@ -15,6 +12,12 @@ public class RawApiUtils {
         return new Request.Builder()
                 .url(url)
                 .get();
+    }
+
+    public static Request.Builder httpPostRequest(String url, String body) {
+        return new Request.Builder()
+                .url(url)
+                .post(RequestBody.create(body, MediaType.parse("application/json; charset=utf-8")));
     }
 
     public static JsonObject getRawJson(OkHttpClient httpClient, Request request, boolean isDebug) throws IOException {

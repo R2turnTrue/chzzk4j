@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.Test;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
+import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
@@ -88,7 +89,7 @@ public class ChannelApiTest extends ChzzkTestBase {
     }
 
     @Test
-    void gettingRecommendationChannels() throws IOException, NotLoggedInException {
+    void gettingRecommendationChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
         ChzzkRecommendationChannels channels = loginChzzk.fetchRecommendationChannels();
         System.out.println(channels);
     }

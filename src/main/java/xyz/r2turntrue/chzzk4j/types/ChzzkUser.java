@@ -5,17 +5,17 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 
 public class ChzzkUser {
-    private boolean hasProfile;
-    private String userIdHash;
-    private String nickname;
-    private String profileImageUrl;
-    private Object[] penalties; // unknown
-    private boolean officialNotiAgree;
-    private String officialNotiAgreeUpdatedDate;
-    private boolean verifiedMark;
-    private boolean loggedIn;
+    boolean hasProfile;
+    String userIdHash;
+    String nickname;
+    String profileImageUrl;
+    Object[] penalties; // unknown
+    boolean officialNotiAgree;
+    String officialNotiAgreeUpdatedDate;
+    boolean verifiedMark;
+    boolean loggedIn;
 
-    private ChzzkUser() {}
+    public ChzzkUser() {}
 
 
     /**
@@ -66,6 +66,22 @@ public class ChzzkUser {
      */
     public boolean isVerifiedMark() {
         return verifiedMark;
+    }
+
+    public void _setUserId(String userId) {
+        userIdHash = userId;
+    }
+
+    public void _setHasProfile(boolean value) {
+        hasProfile = value;
+    }
+
+    public void _setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void _setLoggedIn(boolean loggedIn) {
+        this.loggedIn = loggedIn;
     }
 
     @Override

@@ -2,6 +2,9 @@ package xyz.r2turntrue.chzzk4j;
 
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Class for creating instances of {@link ChzzkClient}.
  */
@@ -14,7 +17,7 @@ public class ChzzkClientBuilder {
     String apiClientId = null;
     String apiSecret = null;
 
-    ChzzkLoginAdapter loginAdapter;
+    List<ChzzkLoginAdapter> loginAdapters = new ArrayList<>();
 
     /**
      * Creates a new {@link ChzzkClientBuilder} with API Key.
@@ -40,7 +43,7 @@ public class ChzzkClientBuilder {
 
     public ChzzkClientBuilder withLoginAdapter(ChzzkLoginAdapter adapter) {
         isAnonymous = false;
-        loginAdapter = adapter;
+        loginAdapters.add(adapter);
 
         return this;
     }
