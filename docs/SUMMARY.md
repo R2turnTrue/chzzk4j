@@ -6,9 +6,14 @@
 * [설치](Installation.md)
 * [시작하기](GettingStarted.md)
 
+## 유저 인증
+
+* [OpenAPI를 통한 인증](LoginOauth.md)
+* [내부 API를 통한 인증](Login.md)
+* [동시에 사용하기](LoginBoth.md)
+
 ## API 사용하기
 
-* [로그인하기](Login.md)
 * [채널 정보 가져오기](ChannelInfo.md)
 * [라이브 정보 가져오기](LiveInfo.md)
 
