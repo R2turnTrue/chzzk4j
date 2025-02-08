@@ -8,7 +8,7 @@ public class OauthLoginTest extends ChzzkTestBase {
     @Test
     public void testOauthLogin() {
         Assertions.assertDoesNotThrow(() -> {
-            var adapter = new ChzzkOauthLoginAdapter();
+            var adapter = new ChzzkOauthLoginAdapter(5000);
 
             var client = new ChzzkClientBuilder(apiClientId, apiSecret)
                     .withDebugMode()
@@ -26,7 +26,7 @@ public class OauthLoginTest extends ChzzkTestBase {
     @Test
     public void testOauthRefresh() {
         Assertions.assertDoesNotThrow(() -> {
-            var adapter = new ChzzkOauthLoginAdapter();
+            var adapter = new ChzzkOauthLoginAdapter(5000);
 
             var client = new ChzzkClientBuilder(apiClientId, apiSecret)
                     .withDebugMode()
