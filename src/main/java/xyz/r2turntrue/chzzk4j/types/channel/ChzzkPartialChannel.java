@@ -6,6 +6,7 @@ import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class ChzzkPartialChannel {
     private String channelId;
@@ -82,5 +83,18 @@ public class ChzzkPartialChannel {
                 ", verifiedMark=" + verifiedMark +
                 ", personalData=" + personalData +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkPartialChannel that = (ChzzkPartialChannel) o;
+        return verifiedMark == that.verifiedMark && Objects.equals(channelId, that.channelId) && Objects.equals(channelName, that.channelName) && Objects.equals(channelImageUrl, that.channelImageUrl) && Objects.equals(personalData, that.personalData) && Objects.equals(emotePackData, that.emotePackData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(channelId, channelName, channelImageUrl, verifiedMark, personalData, emotePackData);
     }
 }

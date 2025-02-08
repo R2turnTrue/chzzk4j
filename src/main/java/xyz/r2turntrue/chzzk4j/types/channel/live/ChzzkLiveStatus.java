@@ -3,6 +3,7 @@ package xyz.r2turntrue.chzzk4j.types.channel.live;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ChzzkLiveStatus {
@@ -173,5 +174,18 @@ public class ChzzkLiveStatus {
                 ", minFollowerMinute=" + minFollowerMinute +
                 ", chatDonationRankingExposure=" + chatDonationRankingExposure +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkLiveStatus that = (ChzzkLiveStatus) o;
+        return concurrentUserCount == that.concurrentUserCount && accumulateCount == that.accumulateCount && paidPromotion == that.paidPromotion && adult == that.adult && clipActive == that.clipActive && chatActive == that.chatActive && minFollowerMinute == that.minFollowerMinute && chatDonationRankingExposure == that.chatDonationRankingExposure && Objects.equals(liveTitle, that.liveTitle) && Objects.equals(status, that.status) && Objects.equals(chatChannelId, that.chatChannelId) && Objects.equals(tags, that.tags) && Objects.equals(categoryType, that.categoryType) && Objects.equals(liveCategory, that.liveCategory) && Objects.equals(liveCategoryValue, that.liveCategoryValue) && Objects.equals(livePollingStatusJson, that.livePollingStatusJson) && Objects.equals(faultStatus, that.faultStatus) && Objects.equals(userAdultStatus, that.userAdultStatus) && Objects.equals(chatAvailableGroup, that.chatAvailableGroup) && Objects.equals(chatAvailableCondition, that.chatAvailableCondition);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(liveTitle, status, concurrentUserCount, accumulateCount, paidPromotion, adult, clipActive, chatChannelId, tags, categoryType, liveCategory, liveCategoryValue, livePollingStatusJson, faultStatus, userAdultStatus, chatActive, chatAvailableGroup, chatAvailableCondition, minFollowerMinute, chatDonationRankingExposure);
     }
 }

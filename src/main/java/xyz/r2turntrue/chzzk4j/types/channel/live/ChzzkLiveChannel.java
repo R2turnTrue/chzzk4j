@@ -2,6 +2,8 @@ package xyz.r2turntrue.chzzk4j.types.channel.live;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class ChzzkLiveChannel {
 
     private String channelId;
@@ -47,4 +49,16 @@ public class ChzzkLiveChannel {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkLiveChannel that = (ChzzkLiveChannel) o;
+        return verifiedMark == that.verifiedMark && Objects.equals(channelId, that.channelId) && Objects.equals(channelName, that.channelName) && Objects.equals(channelImageUrl, that.channelImageUrl);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(channelId, channelName, channelImageUrl, verifiedMark);
+    }
 }

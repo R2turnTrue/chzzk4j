@@ -3,6 +3,7 @@ package xyz.r2turntrue.chzzk4j.types;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class ChzzkUser {
     boolean hasProfile;
@@ -97,5 +98,18 @@ public class ChzzkUser {
                 ", verifiedMark=" + verifiedMark +
                 ", loggedIn=" + loggedIn +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkUser chzzkUser = (ChzzkUser) o;
+        return hasProfile == chzzkUser.hasProfile && officialNotiAgree == chzzkUser.officialNotiAgree && verifiedMark == chzzkUser.verifiedMark && loggedIn == chzzkUser.loggedIn && Objects.equals(userIdHash, chzzkUser.userIdHash) && Objects.equals(nickname, chzzkUser.nickname) && Objects.equals(profileImageUrl, chzzkUser.profileImageUrl) && Objects.deepEquals(penalties, chzzkUser.penalties) && Objects.equals(officialNotiAgreeUpdatedDate, chzzkUser.officialNotiAgreeUpdatedDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(hasProfile, userIdHash, nickname, profileImageUrl, Arrays.hashCode(penalties), officialNotiAgree, officialNotiAgreeUpdatedDate, verifiedMark, loggedIn);
     }
 }

@@ -1,5 +1,7 @@
 package xyz.r2turntrue.chzzk4j.types.channel;
 
+import java.util.Objects;
+
 public class ChzzkChannelFollowingData {
     private boolean following;
     private boolean notification;
@@ -35,5 +37,18 @@ public class ChzzkChannelFollowingData {
                 ", notification=" + notification +
                 ", followDate='" + followDate + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkChannelFollowingData that = (ChzzkChannelFollowingData) o;
+        return following == that.following && notification == that.notification && Objects.equals(followDate, that.followDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(following, notification, followDate);
     }
 }
