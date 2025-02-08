@@ -18,6 +18,7 @@ import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkFollowingStatusResponse;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
+import xyz.r2turntrue.chzzk4j.types.channel.ChzzkPartialChannel;
 import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollowingData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelRules;
@@ -28,6 +29,7 @@ import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -393,7 +395,7 @@ public class ChzzkClient {
         return user;
     }
 
-    public ChzzkFollowingStatusResponse[] fetchFollowingChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
+    public ChzzkPartialChannel[] fetchFollowingChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch following channels without logging in!");
         }
@@ -409,10 +411,11 @@ public class ChzzkClient {
 
         if (isDebug) System.out.println(gson.toJson(contentJson));
 
-        ChzzkFollowingStatusResponse[] channels = gson.fromJson(
+        ChzzkFollowingStatusResponse[] response = gson.fromJson(
                 contentJson.get("followingList"),
                 ChzzkFollowingStatusResponse[].class);
-        return channels;
+
+        return Arrays.stream(response).map((resp) -> resp.channel).toArray(ChzzkPartialChannel[]::new);
     }
 
     public CompletableFuture<Void> refreshTokenAsync() throws NotLoggedInException {

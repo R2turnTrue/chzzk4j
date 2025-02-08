@@ -27,5 +27,5 @@ if (followingStatus.isFollowing()) {
 
 ## 로그인한 사용자의 팔로우 채널 목록 가져오기
 ```java
-ChzzkFollowingStatusResponse[] followingChannels = client.fetchFollowingChannels();
+ChzzkChannels[] followingChannels = client.fetchFollowingChannels();
 ```
