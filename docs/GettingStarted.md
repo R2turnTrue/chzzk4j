@@ -2,6 +2,11 @@
 이 페이지에서는 [설치](Installation.md) 이후 `chzzk4j`를 시작하는 내용에 대해 다룹니다.
 
 ## API 키 발급
+{% hint style="warning" %}
+현재 chzzk4j는 치지직의 비공개 API에서 OpenAPI로 마이그레이션 중에 있습니다.
+되도록이면 공식 API 키를 이용해주세요.
+{% endhint %}
+
 {% hint style="info" %}
 공식 API 키 없이도 `chzzk4j`를 사용할 수 있습니다만, 몇몇 기능에 제한이 생길 수도 있습니다.
 {% endhint %}
