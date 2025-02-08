@@ -5,6 +5,10 @@
 해당 API는 [내부 API를 통한 인증](Login.md)를 필요로 합니다!
 {% endhint %}
 
+{% hint style="info" %}
+해당 API는 API 키를 필요로 하지 않습니다!
+{% endhint %}
+
 ## 로그인한 사용자의 정보 가져오기
 ```java
 ChzzkUser myself = client.fetchLoggedUser();
