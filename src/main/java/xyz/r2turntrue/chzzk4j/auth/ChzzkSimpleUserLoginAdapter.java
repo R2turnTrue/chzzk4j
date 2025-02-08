@@ -11,7 +11,7 @@ public class ChzzkSimpleUserLoginAdapter implements ChzzkLoginAdapter {
     public String accessToken;
     public String refreshToken;
 
-    public ChzzkSimpleUserLoginAdapter(@Nullable String accessToken, @Nullable String refreshToken) {
+    public ChzzkSimpleUserLoginAdapter(String accessToken, @Nullable String refreshToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
     }
