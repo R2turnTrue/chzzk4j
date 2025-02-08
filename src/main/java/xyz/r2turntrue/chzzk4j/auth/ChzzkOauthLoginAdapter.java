@@ -43,8 +43,17 @@ public class ChzzkOauthLoginAdapter implements ChzzkLoginAdapter {
     public ChzzkOauthLoginAdapter() {
     }
 
+    public ChzzkOauthLoginAdapter(int port) {
+        this.port = port;
+    }
+
     public ChzzkOauthLoginAdapter(String redirectHost) {
         this.redirectHost = redirectHost;
+    }
+
+    public ChzzkOauthLoginAdapter(String redirectHost, int port) {
+        this.redirectHost = redirectHost;
+        this.port = port;
     }
 
     public ChzzkOauthLoginAdapter(String redirectHost, int port, String succeedPage, String failedPage) {
