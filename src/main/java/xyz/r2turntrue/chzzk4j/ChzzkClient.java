@@ -393,7 +393,7 @@ public class ChzzkClient {
         return user;
     }
 
-    public ChzzkChannel[] fetchFollowingChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
+    public ChzzkFollowingStatusResponse[] fetchFollowingChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch following channels without logging in!");
         }
@@ -402,14 +402,16 @@ public class ChzzkClient {
             throw new NoAccessTokenOnlySupported("You should use legacy login adapter to get following channels! Sorry :(");
         }
 
-        JsonElement contentJson = RawApiUtils.getContentJson(
+        JsonObject contentJson = RawApiUtils.getContentJson(
                 httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/following").build(),
-                isDebug);
+                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/followings").build(),
+                isDebug).getAsJsonObject();
 
-        ChzzkChannel[] channels = gson.fromJson(
-                contentJson,
-                ChzzkChannel[].class);
+        if (isDebug) System.out.println(gson.toJson(contentJson));
+
+        ChzzkFollowingStatusResponse[] channels = gson.fromJson(
+                contentJson.get("followingList"),
+                ChzzkFollowingStatusResponse[].class);
         return channels;
     }
 
