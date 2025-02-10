@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.Test;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
+import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
@@ -23,6 +24,10 @@ public class ChannelApiTest extends ChzzkTestBase {
     public final String FOLLOWED_CHANNEL_1 = "8e7a6f0a0b1f0612afee1a673e94027d"; // 레고칠칠
     public final String FOLLOWED_CHANNEL_2 = "c2186ca6edb3a663f137b15ed7346fac"; // 리얼진짜우왁굳
     public final String UNFOLLOWED_CHANNEL = "22bd842599735ae19e454983280f611e"; // ENCHANT
+
+    public ChannelApiTest() {
+        super(true);
+    }
 
     @Test
     void gettingNormalChannelInfo() throws IOException {
@@ -88,7 +93,7 @@ public class ChannelApiTest extends ChzzkTestBase {
     }
 
     @Test
-    void gettingRecommendationChannels() throws IOException, NotLoggedInException {
+    void gettingRecommendationChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
         ChzzkRecommendationChannels channels = loginChzzk.fetchRecommendationChannels();
         System.out.println(channels);
     }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ChzzkLiveDetail extends ChzzkLiveStatus {
@@ -101,5 +102,18 @@ public class ChzzkLiveDetail extends ChzzkLiveStatus {
                 ", minFollowerMinute=" + minFollowerMinute +
                 ", chatDonationRankingExposure=" + chatDonationRankingExposure +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkLiveDetail that = (ChzzkLiveDetail) o;
+        return liveId == that.liveId && Objects.equals(formatter, that.formatter) && Objects.equals(zoneId, that.zoneId) && Objects.equals(liveImageUrl, that.liveImageUrl) && Objects.equals(defaultThumbnailImageUrl, that.defaultThumbnailImageUrl) && Objects.equals(openDate, that.openDate) && Objects.equals(closeDate, that.closeDate) && Objects.equals(channel, that.channel);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(formatter, zoneId, liveId, liveImageUrl, defaultThumbnailImageUrl, openDate, closeDate, channel);
     }
 }

@@ -1,7 +1,7 @@
 ![](../image/banner.png)
 
 ![](https://img.shields.io/maven-central/v/io.github.R2turnTrue/chzzk4j) /
-[![](https://img.shields.io/badge/Discord%20Server-7289da)](https://discord.gg/gtJ265XZWn)
+[![](https://img.shields.io/badge/Discord%20Server-7289da)](https://discord.gg/GgNXbzZeDk)
 
 # About
 

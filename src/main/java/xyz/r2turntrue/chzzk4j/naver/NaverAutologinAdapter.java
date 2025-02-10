@@ -7,6 +7,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import xyz.r2turntrue.chzzk4j.ChzzkClient;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
 import xyz.r2turntrue.chzzk4j.util.Chrome;
@@ -33,7 +34,7 @@ public class NaverAutologinAdapter implements ChzzkLoginAdapter {
     }
 
     @Override
-    public CompletableFuture<ChzzkLoginResult> authorize() {
+    public CompletableFuture<ChzzkLoginResult> authorize(ChzzkClient client) {
         return CompletableFuture.supplyAsync(() -> {
             WebDriver driver = Chrome.getDriver();
             driver.get("https://nid.naver.com/nidlogin.login");
@@ -60,6 +61,8 @@ public class NaverAutologinAdapter implements ChzzkLoginAdapter {
                         cookies.put(key, cookie.getValue());
                     }
                 }
+
+                System.out.println("NID_AUT: " + getCookie(Cookie.NID_AUT));
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

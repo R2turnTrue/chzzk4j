@@ -1,6 +1,7 @@
 package xyz.r2turntrue.chzzk4j.types.channel.emoticon;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ChzzkChannelEmotePackData {
     private String emojiPackId;
@@ -38,5 +39,29 @@ public class ChzzkChannelEmotePackData {
 
     public List<ChzzkChannelEmoticonData> getEmojis() {
         return emojis;
+    }
+
+    @Override
+    public String toString() {
+        return "ChzzkChannelEmotePackData{" +
+                "emojiPackId='" + emojiPackId + '\'' +
+                ", emojiPackName='" + emojiPackName + '\'' +
+                ", emojiPackImageUrl='" + emojiPackImageUrl + '\'' +
+                ", emojiPackLocked=" + emojiPackLocked +
+                ", emojis=" + emojis +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkChannelEmotePackData that = (ChzzkChannelEmotePackData) o;
+        return emojiPackLocked == that.emojiPackLocked && Objects.equals(emojiPackId, that.emojiPackId) && Objects.equals(emojiPackName, that.emojiPackName) && Objects.equals(emojiPackImageUrl, that.emojiPackImageUrl) && Objects.equals(emojis, that.emojis);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(emojiPackId, emojiPackName, emojiPackImageUrl, emojiPackLocked, emojis);
     }
 }

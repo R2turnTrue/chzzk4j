@@ -3,19 +3,20 @@ package xyz.r2turntrue.chzzk4j.types;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class ChzzkUser {
-    private boolean hasProfile;
-    private String userIdHash;
-    private String nickname;
-    private String profileImageUrl;
-    private Object[] penalties; // unknown
-    private boolean officialNotiAgree;
-    private String officialNotiAgreeUpdatedDate;
-    private boolean verifiedMark;
-    private boolean loggedIn;
+    boolean hasProfile;
+    String userIdHash;
+    String nickname;
+    String profileImageUrl;
+    Object[] penalties; // unknown
+    boolean officialNotiAgree;
+    String officialNotiAgreeUpdatedDate;
+    boolean verifiedMark;
+    boolean loggedIn;
 
-    private ChzzkUser() {}
+    public ChzzkUser() {}
 
 
     /**
@@ -68,6 +69,22 @@ public class ChzzkUser {
         return verifiedMark;
     }
 
+    public void _setUserId(String userId) {
+        userIdHash = userId;
+    }
+
+    public void _setHasProfile(boolean value) {
+        hasProfile = value;
+    }
+
+    public void _setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void _setLoggedIn(boolean loggedIn) {
+        this.loggedIn = loggedIn;
+    }
+
     @Override
     public String toString() {
         return "ChzzkUser{" +
@@ -81,5 +98,18 @@ public class ChzzkUser {
                 ", verifiedMark=" + verifiedMark +
                 ", loggedIn=" + loggedIn +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChzzkUser chzzkUser = (ChzzkUser) o;
+        return hasProfile == chzzkUser.hasProfile && officialNotiAgree == chzzkUser.officialNotiAgree && verifiedMark == chzzkUser.verifiedMark && loggedIn == chzzkUser.loggedIn && Objects.equals(userIdHash, chzzkUser.userIdHash) && Objects.equals(nickname, chzzkUser.nickname) && Objects.equals(profileImageUrl, chzzkUser.profileImageUrl) && Objects.deepEquals(penalties, chzzkUser.penalties) && Objects.equals(officialNotiAgreeUpdatedDate, chzzkUser.officialNotiAgreeUpdatedDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(hasProfile, userIdHash, nickname, profileImageUrl, Arrays.hashCode(penalties), officialNotiAgree, officialNotiAgreeUpdatedDate, verifiedMark, loggedIn);
     }
 }
