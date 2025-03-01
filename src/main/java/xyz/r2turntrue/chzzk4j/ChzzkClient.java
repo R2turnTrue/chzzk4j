@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRefreshRequestBody;
-import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRequestBody;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenResponseBody;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
@@ -28,6 +27,8 @@ import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationCh
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -173,6 +174,12 @@ public class ChzzkClient {
                 if (loginResult.accessToken() != null) {
                     httpBuilder.addInterceptor(chain -> {
                         Request original = chain.request();
+
+                        if (original.header("Not-Token-Api") != null) {
+                            return chain.proceed(original.newBuilder()
+                                    .removeHeader("Not-Token-Api")
+                                    .build());
+                        }
                         Request authorized = original.newBuilder()
                                 .addHeader("Authorization", "Bearer " + loginResult.accessToken())
                                 .build();
@@ -445,8 +452,8 @@ public class ChzzkClient {
     }
 
     public CompletableFuture<Void> setAnnouncementOfLoggedInChannel(String content) throws NotLoggedInException {
-        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
-        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+        if (!isLoggedIn) throw new NotLoggedInException("Can't send announcement without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't set announcement without logging in with access token!");
 
         var req = new JsonObject();
         req.addProperty("message", content);
@@ -461,9 +468,72 @@ public class ChzzkClient {
         });
     }
 
+    public CompletableFuture<String> fetchStreamKey() throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch stream key without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch stream key without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/streams/key")
+                        .build(), isDebug).getAsJsonObject()
+                        .get("streamKey")
+                        .getAsString();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkLiveSettings> fetchLiveSettings() throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch live settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch live settings without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return gson.fromJson(RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/lives/setting")
+                                .build(), isDebug), ChzzkLiveSettings.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> modifyLiveSettings(ChzzkLiveSettings settings) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't modify live settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't modify live settings without logging in with access token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPatchRequest(ChzzkClient.OPENAPI_URL + "/open/v1/lives/setting",
+                                gson.toJson(new ChzzkLiveSettings.ModifyRequest(settings)))
+                        .build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkLiveCategory[]> searchCategories(String query) throws NotLoggedInException {
+        return this.searchCategories(query, 20); // 문서에 명시된 기본 검색 카운트
+    }
+
+    public CompletableFuture<ChzzkLiveCategory[]> searchCategories(String query, int searchCount) throws NotLoggedInException {
+        if (!hasApiKey) throw new IllegalStateException("Can't search categories without the OpenAPI key!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return gson.fromJson(RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/categories/search?size=" + searchCount + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8))
+                                .addHeader("Not-Token-Api", "1")
+                        .build(), isDebug), ChzzkLiveCategory.SearchResponse.class).getData();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     public CompletableFuture<ChzzkChatSettings> fetchChatSettings() throws NotLoggedInException {
-        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
-        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch chat settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch chat settings without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -477,8 +547,8 @@ public class ChzzkClient {
     }
 
     public CompletableFuture<ChzzkChatSettings> modifyChatSettings(ChzzkChatSettings newSettings) throws NotLoggedInException {
-        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
-        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+        if (!isLoggedIn) throw new NotLoggedInException("Can't modify chat settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't modify chat settings without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
             try {

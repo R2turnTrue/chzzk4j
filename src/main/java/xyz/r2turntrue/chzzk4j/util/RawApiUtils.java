@@ -26,6 +26,12 @@ public class RawApiUtils {
                 .put(RequestBody.create(body, MediaType.parse("application/json; charset=utf-8")));
     }
 
+    public static Request.Builder httpPatchRequest(String url, String body) {
+        return new Request.Builder()
+                .url(url)
+                .patch(RequestBody.create(body, MediaType.parse("application/json; charset=utf-8")));
+    }
+
     public static JsonObject getRawJson(OkHttpClient httpClient, Request request, boolean isDebug) throws IOException {
         Response response = httpClient.newCall(request).execute();
 
@@ -45,7 +51,12 @@ public class RawApiUtils {
                     System.out.println("BD: " + bodyString);
                 }
             }
-            throw new IOException("Response was not successful!");
+
+            if (response.code() == 403 || response.code() == 401) {
+                throw new IllegalStateException("Unauthorized! Check the client is authorized or the authentication scopes!");
+            }
+
+            throw new IOException("Response was not successful! Try to use debugMode to check response body!");
         }
     }
 

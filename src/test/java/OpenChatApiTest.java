@@ -5,6 +5,7 @@ import xyz.r2turntrue.chzzk4j.auth.ChzzkOauthLoginAdapter;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
 import xyz.r2turntrue.chzzk4j.types.ChzzkChatSettings;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public class OpenChatApiTest extends ChzzkTestBase {
@@ -25,6 +26,19 @@ public class OpenChatApiTest extends ChzzkTestBase {
             System.out.println(client.fetchLoggedUser());
 
             try {
+                System.out.println(Arrays.toString(client.searchCategories("마인크래프트").join()));
+
+                var live = client.fetchLiveSettings().join();
+                System.out.println(live);
+
+                live.setDefaultLiveTitle(UUID.randomUUID().toString());
+
+                client.modifyLiveSettings(live).join();
+
+                var newLive = client.fetchLiveSettings().join();
+
+                Assertions.assertEquals(live.getDefaultLiveTitle(), newLive.getDefaultLiveTitle());
+
                 var chatId = client.sendChatToLoggedInChannel("안녕, 세상! --> " + UUID.randomUUID()).join();
                 System.out.println(chatId);
                 client.setAnnouncementOfLoggedInChannel("안녕, 세상! [공지] --> " + UUID.randomUUID()).join();
