@@ -20,6 +20,12 @@ public class RawApiUtils {
                 .post(RequestBody.create(body, MediaType.parse("application/json; charset=utf-8")));
     }
 
+    public static Request.Builder httpPutRequest(String url, String body) {
+        return new Request.Builder()
+                .url(url)
+                .put(RequestBody.create(body, MediaType.parse("application/json; charset=utf-8")));
+    }
+
     public static JsonObject getRawJson(OkHttpClient httpClient, Request request, boolean isDebug) throws IOException {
         Response response = httpClient.newCall(request).execute();
 

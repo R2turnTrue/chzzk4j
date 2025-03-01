@@ -15,6 +15,7 @@ import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
+import xyz.r2turntrue.chzzk4j.types.ChzzkChatSettings;
 import xyz.r2turntrue.chzzk4j.types.ChzzkFollowingStatusResponse;
 import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
@@ -44,6 +45,7 @@ public class ChzzkClient {
     private boolean isAnonymous;
     private boolean isLoggedIn;
     private boolean isOauthOnly;
+    private boolean isLegacyOnly;
 
     private String apiClientId;
     private String apiSecret;
@@ -64,6 +66,10 @@ public class ChzzkClient {
 
     public boolean hasApiKey() {
         return hasApiKey;
+    }
+
+    public Gson getGson() {
+        return gson;
     }
 
     private OkHttpClient.Builder buildHttp() {
@@ -176,6 +182,7 @@ public class ChzzkClient {
                 }
 
                 isOauthOnly = loginResult.accessToken() != null && (loginResult.legacy_NID_AUT() == null || loginResult.legacy_NID_SES() == null);
+                isLegacyOnly = loginResult.accessToken() == null;
 
                 httpClient = httpBuilder.build();
             });
@@ -416,6 +423,75 @@ public class ChzzkClient {
                 ChzzkFollowingStatusResponse[].class);
 
         return Arrays.stream(response).map((resp) -> resp.channel).toArray(ChzzkPartialChannel[]::new);
+    }
+
+    public CompletableFuture<String> sendChatToLoggedInChannel(String content) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+
+        var req = new JsonObject();
+        req.addProperty("message", content);
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var resp = RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/open/v1/chats/send",
+                        gson.toJson(req)).build(), isDebug);
+
+                return resp.getAsJsonObject().get("messageId").getAsString();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> setAnnouncementOfLoggedInChannel(String content) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+
+        var req = new JsonObject();
+        req.addProperty("message", content);
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/open/v1/chats/notice",
+                        gson.toJson(req)).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkChatSettings> fetchChatSettings() throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/chats/settings").build(), isDebug);
+
+                return gson.fromJson(elem, ChzzkChatSettings.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkChatSettings> modifyChatSettings(ChzzkChatSettings newSettings) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpPutRequest(
+                                ChzzkClient.OPENAPI_URL + "/open/v1/chats/settings",
+                                gson.toJson(newSettings)).build(), isDebug);
+
+                return gson.fromJson(elem, ChzzkChatSettings.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public CompletableFuture<Void> refreshTokenAsync() throws NotLoggedInException {
