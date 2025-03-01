@@ -18,7 +18,7 @@
 * [라이브 정보 가져오기](LiveInfo.md)
 * [로그인한 사용자의 정보 가져오기](AuthenticatedUserInfo.md)
 
-## 채팅
+## 채팅 (레거시)
 
 * [채팅 연결하기](ChatConnect.md)
 * [채팅 이벤트](ChatMessage.md)
