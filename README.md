@@ -76,3 +76,8 @@ chat.connectBlocking();
 - [ ] get following channels of user that logged in
 - [ ] get video information
 - [ ] get cheese ranking
+
+### references
+
+- [kimcore/chzzk](https://github.com/kimcore/chzzk)
+- [Chzzk Official API - Session Test Results](https://gist.github.com/fi-xz/69ce1f35ca1b2318a2b410c0d5757e0f#file-main-kt)
