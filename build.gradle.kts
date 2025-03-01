@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.R2turnTrue"
-version = "0.0.12"
+version = "0.1.0"
 
 val publishProps = Properties()
 publishProps.load(
@@ -41,6 +41,14 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.compileJava {
+    options.encoding = "UTF-8"
+}
+
+tasks.javadoc {
+    options.encoding = "UTF-8"
+}
+
 java {
     withJavadocJar()
     withSourcesJar()
@@ -52,7 +60,7 @@ publishing {
             artifactId = "chzzk4j"
             groupId = "io.github.R2turnTrue"
 
-            version = "0.0.12"
+            version = "0.1.0"
 
             from(components["java"])
 
