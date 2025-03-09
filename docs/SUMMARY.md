@@ -18,7 +18,7 @@
 * [라이브 정보 가져오기](LiveInfo.md)
 * [로그인한 사용자의 정보 가져오기](AuthenticatedUserInfo.md)
 
-# 공식 API 사용하기
+## 공식 API 사용하기
 
 * [방송 / 채팅 설정](BroadcastSettings.md)
 
