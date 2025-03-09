@@ -48,6 +48,7 @@ class ChzzkSession {
     private ChzzkClient chzzk;
     private boolean autoRecreate = true;
     private boolean connected = false;
+    private boolean disconnectedForce = true;
     private String sessionKey = "";
 
     private List<ChzzkSessionSubscriptionType> subscriptions = new ArrayList<>();
@@ -231,6 +232,7 @@ class ChzzkSession {
     }
 
     private CompletableFuture<Void> connectAsync(String url) {
+        disconnectedForce = false;
         return CompletableFuture.runAsync(() -> {
             try {
                 socket = IO.socket(url, SOCKET_OPTIONS);
@@ -245,6 +247,12 @@ class ChzzkSession {
                         System.out.println(Arrays.toString(args));
                     appliedSubscriptions.clear();
                     emit(SessionDisconnectedEvent.class, new SessionDisconnectedEvent());
+
+                    if (!disconnectedForce && autoRecreate) {
+                        if (chzzk.isDebug)
+                            System.out.println("Recreating the session...");
+                        createAndConnectAsync().join();
+                    }
                 });
 
                 socket.on("SYSTEM", (args) -> {
@@ -320,7 +328,12 @@ class ChzzkSession {
     }
 
     public CompletableFuture<Void> disconnectAsync() {
+        return disconnectAsync(true);
+    }
+
+    public CompletableFuture<Void> disconnectAsync(boolean processAsForced) {
         return CompletableFuture.runAsync(() -> {
+            disconnectedForce = processAsForced;
             socket.disconnect();
         });
     }

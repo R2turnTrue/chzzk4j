@@ -67,4 +67,40 @@ public class SessionApiTest extends ChzzkTestBase {
         Thread.sleep(Long.MAX_VALUE);
     }
 
+    @Test
+    public void sessionAutoRecreateTest() throws IOException, NotLoggedInException, InterruptedException {
+        var adapter = new ChzzkOauthLoginAdapter(5000);
+
+        var client = new ChzzkClientBuilder(apiClientId, apiSecret)
+                .withDebugMode()
+                .withLoginAdapter(adapter)
+                .build();
+
+        System.out.println(adapter.getAccountInterlockUrl(apiClientId, false));
+
+        client.loginAsync().join();
+
+        System.out.println(client.fetchLoggedUser());
+
+        var session = new ChzzkSessionBuilder(client)
+                .withAutoRecreate(true)
+                .buildUserSession();
+
+        session.on(SessionConnectedEvent.class, (event) -> {
+            System.out.println("Connected!");
+        });
+
+        session.on(SessionDisconnectedEvent.class, (event) -> {
+            System.out.println("Disconnected :(");
+        });
+
+        session.createAndConnectAsync().join();
+
+        Thread.sleep(1000);
+
+        session.disconnectAsync(false).join();
+
+        Thread.sleep(Long.MAX_VALUE);
+    }
+
 }
