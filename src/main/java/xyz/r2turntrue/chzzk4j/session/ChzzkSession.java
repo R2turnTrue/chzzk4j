@@ -215,8 +215,17 @@ class ChzzkSession {
     public CompletableFuture<Void> createAndConnectAsync() {
         return CompletableFuture.runAsync(() -> {
             try {
-                JsonElement urlRaw = RawApiUtils.getContentJson(chzzk.getHttpClient(),
-                                RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + sessionCreateUrl).build(), chzzk.isDebug)
+                Request.Builder requestBuilder = RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + sessionCreateUrl);
+
+                String clientId = chzzk.getApiClientId();
+                String clientSecret = chzzk.getApiSecret();
+
+                if (clientId != null && clientSecret != null) {
+                    requestBuilder.addHeader("Client-Id", clientId);
+                    requestBuilder.addHeader("Client-Secret", clientSecret);
+                }
+
+                JsonElement urlRaw = RawApiUtils.getContentJson(chzzk.getHttpClient(), requestBuilder.build(), chzzk.isDebug)
                         .getAsJsonObject()
                         .get("url");
 
