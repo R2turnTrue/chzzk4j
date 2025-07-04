@@ -40,7 +40,8 @@ public class NaverAutologinAdapter implements ChzzkLoginAdapter {
             driver.get("https://nid.naver.com/nidlogin.login");
             try {
                 // Write id and pw fields
-                if (driver instanceof JavascriptExecutor js) {
+                if (driver instanceof JavascriptExecutor) {
+                    JavascriptExecutor js = (JavascriptExecutor) driver;
                     js.executeScript(String.format("document.getElementById('id').value='%s';", id));
                     js.executeScript(String.format("document.getElementById('pw').value='%s';", password));
                 }

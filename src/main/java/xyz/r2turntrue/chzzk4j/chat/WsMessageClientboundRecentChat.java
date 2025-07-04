@@ -16,7 +16,7 @@ class WsMessageClientboundRecentChat extends WsMessageBase {
             public String profile;
 
             public ChatMessage toChatMessage(Class<? extends ChatMessage> clazz) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-                var msg = (ChatMessage) clazz.getConstructors()[0].newInstance();
+                ChatMessage msg = (ChatMessage) clazz.getConstructors()[0].newInstance();
                 msg.rawJson = new Gson().toJson(this);
                 msg.content = content;
                 msg.msgTypeCode = messageTypeCode;

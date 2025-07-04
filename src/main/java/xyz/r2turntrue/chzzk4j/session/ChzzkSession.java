@@ -1,6 +1,7 @@
 package xyz.r2turntrue.chzzk4j.session;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -259,12 +260,12 @@ class ChzzkSession {
                     if (chzzk.isDebug)
                         System.out.println(Arrays.toString(args));
 
-                    var json = JsonParser.parseString(args[0].toString())
+                    JsonObject json = JsonParser.parseString(args[0].toString())
                             .getAsJsonObject();
-                    var msgType = json.get("type").getAsString();
+                    String msgType = json.get("type").getAsString();
 
                     if (msgType.equalsIgnoreCase("connected")) {
-                        var msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemConnected.class);
+                        ClientboundSystemConnected msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemConnected.class);
 
                         if(chzzk.isDebug) System.out.println(msg);
 
@@ -279,18 +280,18 @@ class ChzzkSession {
                             throw new RuntimeException(e);
                         }
                     } else if (msgType.equalsIgnoreCase("subscribed")) {
-                        var msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemSubscribed.class);
+                        ClientboundSystemSubscribed msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemSubscribed.class);
                         if (chzzk.isDebug) System.out.println(msg);
 
                         emit(SessionSubscribedEvent.class, new SessionSubscribedEvent(msg.getEventType(), msg.getChannelId()));
                     } else if (msgType.equalsIgnoreCase("unsubscribed")) {
-                        var msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemUnsubscribed.class);
+                        ClientboundSystemUnsubscribed msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemUnsubscribed.class);
                         if (chzzk.isDebug) System.out.println(msg);
 
                         emit(SessionUnsubscribedEvent.class, new SessionUnsubscribedEvent(msg.getEventType(), msg.getChannelId()));
                     } else if (msgType.equalsIgnoreCase("revoked")) {
-                        var msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemRevoked.class);
-                        var eventType = msg.getEventType();
+                        ClientboundSystemRevoked msg = chzzk.getGson().fromJson(json.get("data"), ClientboundSystemRevoked.class);
+                        ChzzkSessionSubscriptionType eventType = msg.getEventType();
 
                         emit(SessionSubscriptionRevokedEvent.class, new SessionSubscriptionRevokedEvent(msg.getEventType(), msg.getChannelId()));
 
@@ -303,7 +304,7 @@ class ChzzkSession {
                     if (chzzk.isDebug)
                         System.out.println(Arrays.toString(args));
 
-                    var msg = chzzk.getGson().fromJson(args[0].toString(), SessionChatMessage.class);
+                    SessionChatMessage msg = chzzk.getGson().fromJson(args[0].toString(), SessionChatMessage.class);
                     if (chzzk.isDebug)
                         System.out.println(msg);
 
@@ -313,7 +314,7 @@ class ChzzkSession {
                 socket.on("DONATION", (args) -> {
                     if (chzzk.isDebug)
                         System.out.println(Arrays.toString(args));
-                    var msg = chzzk.getGson().fromJson(args[0].toString(), SessionDonationMessage.class);
+                    SessionDonationMessage msg = chzzk.getGson().fromJson(args[0].toString(), SessionDonationMessage.class);
                     if (chzzk.isDebug)
                         System.out.println(msg);
 

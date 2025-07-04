@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -11,7 +12,7 @@ import java.util.Map;
 
 public class HttpUtils {
     // https://stackoverflow.com/questions/11640025/how-to-obtain-the-query-string-in-a-get-with-java-httpserver-httpexchange
-    public static Map<String, String> queryToMap(String query) {
+    public static Map<String, String> queryToMap(String query) throws UnsupportedEncodingException {
         if (query == null) {
             return null;
         }
@@ -20,12 +21,12 @@ public class HttpUtils {
             String[] entry = param.split("=");
             if (entry.length > 1) {
                 result.put(
-                        URLDecoder.decode(entry[0], StandardCharsets.UTF_8),
-                        URLDecoder.decode(entry[1], StandardCharsets.UTF_8)
+                        URLDecoder.decode(entry[0], String.valueOf(StandardCharsets.UTF_8)),
+                        URLDecoder.decode(entry[1], String.valueOf(StandardCharsets.UTF_8))
                 );
             } else {
                 result.put(
-                        URLDecoder.decode(entry[0], StandardCharsets.UTF_8),
+                        URLDecoder.decode(entry[0], String.valueOf(StandardCharsets.UTF_8)),
                         ""
                 );
             }

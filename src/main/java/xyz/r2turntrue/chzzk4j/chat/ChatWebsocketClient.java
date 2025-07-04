@@ -34,10 +34,12 @@ public class ChatWebsocketClient extends WebSocketClient {
         this.executor = Executors.newSingleThreadScheduledExecutor();
     }
 
-    private HashMap<Integer, Class<?>> clientboundMessages = new HashMap<>() {{
-        put(WsMessageTypes.Commands.CONNECTED, WsMessageClientboundConnected.class);
-        put(WsMessageTypes.Commands.RECENT_CHAT, WsMessageClientboundRecentChat.class);
-    }};
+    private HashMap<Integer, Class<?>> clientboundMessages = new HashMap<>();
+
+    {
+        clientboundMessages.put(WsMessageTypes.Commands.CONNECTED, WsMessageClientboundConnected.class);
+        clientboundMessages.put(WsMessageTypes.Commands.RECENT_CHAT, WsMessageClientboundRecentChat.class);
+    }
 
     @SuppressWarnings("unchecked")
     private Class<? extends WsMessageBase> getClientboundMessageClass(int id) {
@@ -91,11 +93,11 @@ public class ChatWebsocketClient extends WebSocketClient {
             JsonObject parsedMessage = JsonParser.parseString(message)
                     .getAsJsonObject();
 
-            var cmdId = parsedMessage
+            int cmdId = parsedMessage
                     .get("cmd")
                     .getAsInt();
 
-            var messageClass = getClientboundMessageClass(cmdId);
+            Class<? extends WsMessageBase> messageClass = getClientboundMessageClass(cmdId);
 
             if (messageClass == WsMessageClientboundConnected.class) {
                 // handle connected message
@@ -221,9 +223,9 @@ public class ChatWebsocketClient extends WebSocketClient {
     }
 
     public void sendChat(String content) {
-        var msg = setupWsMessage(new WsMessageServerboundSendChat());
+        WsMessageServerboundSendChat msg = setupWsMessage(new WsMessageServerboundSendChat());
         msg.sid = sid;
-        var extras = new WsMessageServerboundSendChat.Body.Extras();
+        WsMessageServerboundSendChat. Body. Extras extras = new WsMessageServerboundSendChat.Body.Extras();
         extras.streamingChannelId = chat.channelId;
         msg.bdy.extras = gson.toJson(extras);
         msg.bdy.msg = content;
@@ -233,7 +235,7 @@ public class ChatWebsocketClient extends WebSocketClient {
     }
 
     public void requestRecentChat(int chatCount) {
-        var msg = setupWsMessage(new WsMessageServerboundRequestRecentChat());
+        WsMessageServerboundRequestRecentChat msg = setupWsMessage(new WsMessageServerboundRequestRecentChat());
         msg.tid = 2;
         msg.bdy.recentMessageCount = chatCount;
         msg.sid = sid;

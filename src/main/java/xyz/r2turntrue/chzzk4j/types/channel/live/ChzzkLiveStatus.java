@@ -89,7 +89,7 @@ public class ChzzkLiveStatus {
      * Get tags of the live stream.
      */
     public @NotNull List<String> getTags() {
-        return List.copyOf(tags);
+        return tags;
     }
 
     /**

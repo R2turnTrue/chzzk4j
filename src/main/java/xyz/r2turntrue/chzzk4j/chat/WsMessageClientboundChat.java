@@ -20,7 +20,7 @@ class WsMessageClientboundChat extends WsMessageBase {
         public String msgStatusType;
 
         public <T extends ChatMessage> T toChatMessage(Class<T> clazz) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            var msg = (T) clazz.getConstructors()[0].newInstance();
+            ChatMessage msg = (T) clazz.getConstructors()[0].newInstance();
 
             msg.rawJson = new Gson().toJson(this);
 
@@ -30,7 +30,7 @@ class WsMessageClientboundChat extends WsMessageBase {
             msg.extras = new Gson().fromJson(extras, ChatMessage.Extras.class);
             msg.profile = new Gson().fromJson(profile, ChatMessage.Profile.class);
             msg.userId = uid;
-            return msg;
+            return (T) msg;
         }
     }
 
