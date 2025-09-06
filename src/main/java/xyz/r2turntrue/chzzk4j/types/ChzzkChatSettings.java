@@ -26,10 +26,23 @@ public class ChzzkChatSettings {
         M_43200
     }
 
+    public enum ChatSlowModeSec {
+        S_0,
+        S_3,
+        S_5,
+        S_10,
+        S_30,
+        S_60,
+        S_120,
+        S_300
+    }
+
     private String chatAvailableCondition;
     private String chatAvailableGroup;
     private int minFollowerMinute;
     private boolean allowSubscriberInFollowerMode;
+    private int chatSlowModeSec;
+    private boolean chatEmojiMode;
 
     public ChatAvailableCondition getChatAvailableCondition() {
         return ChatAvailableCondition.valueOf(chatAvailableCondition);
@@ -47,6 +60,14 @@ public class ChzzkChatSettings {
         return allowSubscriberInFollowerMode;
     }
 
+    public int getChatSlowModeSec() {
+        return chatSlowModeSec;
+    }
+
+    public boolean isChatEmojiMode() {
+        return chatEmojiMode;
+    }
+
     public void setChatAvailableCondition(ChatAvailableCondition chatAvailableCondition) {
         this.chatAvailableCondition = chatAvailableCondition.toString();
     }
@@ -61,6 +82,14 @@ public class ChzzkChatSettings {
 
     public void setAllowSubscriberInFollowerMode(boolean allowSubscriberInFollowerMode) {
         this.allowSubscriberInFollowerMode = allowSubscriberInFollowerMode;
+    }
+
+    public void setChatEmojiMode(boolean chatEmojiMode) {
+        this.chatEmojiMode = chatEmojiMode;
+    }
+
+    public void setChatSlowModeSec(ChatSlowModeSec sec) {
+        this.chatSlowModeSec = Integer.parseInt(sec.toString().replace("S_", ""));
     }
 
     @Override

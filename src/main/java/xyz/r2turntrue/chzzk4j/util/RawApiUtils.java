@@ -14,10 +14,22 @@ public class RawApiUtils {
                 .get();
     }
 
+    public static Request.Builder httpGetRequest(String url, String body) {
+        return new Request.Builder()
+                .url(url)
+                .get();
+    }
+
     public static Request.Builder httpPostRequest(String url, String body) {
         return new Request.Builder()
                 .url(url)
                 .post(RequestBody.create(body, MediaType.parse("application/json; charset=utf-8")));
+    }
+
+    public static Request.Builder httpDeleteRequest(String url, String body) {
+        return new Request.Builder()
+                .url(url)
+                .delete(RequestBody.create(body, MediaType.parse("application/json; charset=utf-8")));
     }
 
     public static Request.Builder httpPutRequest(String url, String body) {

@@ -13,6 +13,7 @@ import xyz.r2turntrue.chzzk4j.ChzzkClient;
 import xyz.r2turntrue.chzzk4j.session.event.*;
 import xyz.r2turntrue.chzzk4j.session.message.SessionChatMessage;
 import xyz.r2turntrue.chzzk4j.session.message.SessionDonationMessage;
+import xyz.r2turntrue.chzzk4j.session.message.SessionNewSubscriberMessage;
 import xyz.r2turntrue.chzzk4j.session.message.system.ClientboundSystemConnected;
 import xyz.r2turntrue.chzzk4j.session.message.system.ClientboundSystemRevoked;
 import xyz.r2turntrue.chzzk4j.session.message.system.ClientboundSystemSubscribed;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 class ChzzkSession {
@@ -90,9 +92,11 @@ class ChzzkSession {
 
             subscriptions.add(subscriptionType);
             try {
-                applySubscriptionAsync(subscriptionType).join();
+                applySubscriptionAsync(subscriptionType).get();
             } catch (IllegalStateException ignored) {
 
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
             }
 
             return true;
@@ -107,9 +111,11 @@ class ChzzkSession {
 
             subscriptions.remove(subscriptionType);
             try {
-                takeOffSubscriptionAsync(subscriptionType).join();
+                takeOffSubscriptionAsync(subscriptionType).get();
             } catch (IllegalStateException ignored) {
 
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
             }
 
             return true;
@@ -123,7 +129,11 @@ class ChzzkSession {
 
         return CompletableFuture.runAsync(() -> {
             for (ChzzkSessionSubscriptionType subscriptionType : subscriptions) {
-                applySubscriptionAsync(subscriptionType).join();
+                try {
+                    applySubscriptionAsync(subscriptionType).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }
@@ -224,8 +234,8 @@ class ChzzkSession {
                     throw new RuntimeException("Failed to fetch session url!");
                 }
 
-                connectAsync(urlRaw.getAsString()).join();
-            } catch (IOException e) {
+                connectAsync(urlRaw.getAsString()).get();
+            } catch (IOException | ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -251,7 +261,11 @@ class ChzzkSession {
                     if (!disconnectedForce && autoRecreate) {
                         if (chzzk.isDebug)
                             System.out.println("Recreating the session...");
-                        createAndConnectAsync().join();
+                        try {
+                            createAndConnectAsync().get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 });
 
@@ -274,8 +288,8 @@ class ChzzkSession {
                         emit(SessionConnectedEvent.class, new SessionConnectedEvent());
 
                         try {
-                            applySubscriptionsAsync().join();
-                        } catch (IOException e) {
+                            applySubscriptionsAsync().get();
+                        } catch (IOException | InterruptedException | ExecutionException e) {
                             throw new RuntimeException(e);
                         }
                     } else if (msgType.equalsIgnoreCase("subscribed")) {
@@ -318,6 +332,16 @@ class ChzzkSession {
                         System.out.println(msg);
 
                     emit(SessionDonationEvent.class, new SessionDonationEvent(msg));
+                });
+
+                socket.on("SUBSCRIPTION", (args) -> {
+                    if (chzzk.isDebug)
+                        System.out.println(Arrays.toString(args));
+                    var msg = chzzk.getGson().fromJson(args[0].toString(), SessionNewSubscriberMessage.class);
+                    if (chzzk.isDebug)
+                        System.out.println(msg);
+
+                    emit(SessionNewSubscriberEvent.class, new SessionNewSubscriberEvent(msg));
                 });
 
                 socket.connect();

@@ -9,7 +9,7 @@
 
 `ChzzkClient`의 `sendChatToLoggedInChannel`을 통해 채팅을 전송할 수 있습니다.
 
-이 때, **API 키를 소유한 계정**이 **`ChzzkClient`에 로그인된 채널**로 채팅이 전송됩니다.
+이 때, **API 키를 소유한 계정**이 **`ChzzkClient`에 로그인된 채널**에 채팅을 전송합니다.
 
 ```java
 client.sendChatToLoggedInChannel("안녕, 세상!").join();
