@@ -10,6 +10,7 @@ name: Gradle Package
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
