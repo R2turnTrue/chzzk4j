@@ -21,6 +21,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build Properties
+      env:
+        GPG_KEY: ${{ secrets.GPG_KEY }}
+        GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
+        NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+        NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
       run: |
         echo "$GPG_KEY" | base64 -d > secring.gpg
         echo -e "signing.keyId=$GPG_KEY_ID" >> publish.properties
