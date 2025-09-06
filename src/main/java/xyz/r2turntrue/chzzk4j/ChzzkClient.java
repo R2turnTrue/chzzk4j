@@ -218,8 +218,6 @@ public class ChzzkClient {
      *
      * @param channelId ID of {@link ChzzkChannel} that to get.
      * @return {@link ChzzkChannel} to get
-     * @throws IOException if the request to API failed
-     * @throws ChannelNotExistsException if the channel doesn't exists
      */
     public CompletableFuture<ChzzkChannel> fetchChannel(String channelId) {
         return CompletableFuture.supplyAsync(() -> {
@@ -271,11 +269,11 @@ public class ChzzkClient {
         });
     }
 
-    public @NotNull CompletableFuture<ChzzkChannelFollowerResponse> fetchChannelFollowers() throws NotLoggedInException, IllegalStateException, IOException {
+    public @NotNull CompletableFuture<ChzzkChannelFollowerResponse> fetchChannelFollowers() throws NotLoggedInException, IllegalStateException {
         return fetchChannelFollowers(0, 30);
     }
 
-    public @NotNull CompletableFuture<ChzzkChannelSubscriberResponse> fetchChannelSubscribers() throws IOException, NotLoggedInException {
+    public @NotNull CompletableFuture<ChzzkChannelSubscriberResponse> fetchChannelSubscribers() throws NotLoggedInException {
         return fetchChannelSubscribers(0, 30, null);
     }
 
@@ -348,7 +346,6 @@ public class ChzzkClient {
      * Get {@link ChzzkLiveDetail} by the channel id.
      * @param channelId ID of {@link ChzzkChannel}
      * @return {@link ChzzkLiveDetail} of the channel
-     * @throws IOException if the request to API failed
      */
     public @NotNull CompletableFuture<ChzzkLiveDetail> fetchLiveDetail(@NotNull String channelId) {
         return CompletableFuture.supplyAsync(() -> {
@@ -433,7 +430,7 @@ public class ChzzkClient {
      * @throws IOException if the request to API failed
      * @throws NotLoggedInException if this {@link ChzzkClient} didn't log in
      */
-    public CompletableFuture<ChzzkChannelFollowingData> fetchFollowingStatus(String channelId) throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
+    public CompletableFuture<ChzzkChannelFollowingData> fetchFollowingStatus(String channelId) throws NotLoggedInException, NoAccessTokenOnlySupported {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch following status without logging in!");
         }
@@ -475,7 +472,7 @@ public class ChzzkClient {
      * @return recommendation channels - {@link ChzzkRecommendationChannels}
      * @throws IOException if the request to API failed
      */
-    public CompletableFuture<ChzzkRecommendationChannels> fetchRecommendationChannels() throws IOException, NoAccessTokenOnlySupported, NotLoggedInException {
+    public CompletableFuture<ChzzkRecommendationChannels> fetchRecommendationChannels() throws NoAccessTokenOnlySupported, NotLoggedInException {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch recommendation channels without logging in!");
         }
@@ -559,7 +556,7 @@ public class ChzzkClient {
         });
     }
 
-    public CompletableFuture<ChzzkPartialChannel[]> fetchFollowingChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
+    public CompletableFuture<ChzzkPartialChannel[]> fetchFollowingChannels() throws NotLoggedInException, NoAccessTokenOnlySupported {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch following channels without logging in!");
         }
@@ -674,7 +671,7 @@ public class ChzzkClient {
         return this.searchCategories(query, 20); // 문서에 명시된 기본 검색 카운트
     }
 
-    public CompletableFuture<ChzzkLiveCategory[]> searchCategories(String query, int searchCount) throws NotLoggedInException {
+    public CompletableFuture<ChzzkLiveCategory[]> searchCategories(String query, int searchCount) {
         if (!hasApiKey) throw new IllegalStateException("Can't search categories without the OpenAPI key!");
 
         return CompletableFuture.supplyAsync(() -> {
