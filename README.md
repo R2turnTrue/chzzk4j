@@ -31,7 +31,7 @@ Check at [our docs](https://r2turntrue.gitbook.io/chzzk4j)!
 
 ### minimal legacy chat example
 ```java
-ChzzkClient client = new ChzzkClientBuilder("API_CLIENT_ID", "API_SECRET")
+ChzzkClient client = new ChzzkClientBuilder() // 레거시 챗은 비공개 API이기 때문에, API 키가 필요하지 않습니다.
         .build();
 ChzzkChat chat = new ChzzkChatBuilder(client,
         "CHANNEL_ID")
