@@ -57,4 +57,4 @@ jobs:
     # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
     # the publishing section of your build.gradle
     - name: Publish
-      run: ./gradlew publish
+      run: ./gradlew publishToSonatype
