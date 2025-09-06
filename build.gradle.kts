@@ -9,7 +9,7 @@ plugins {
     `java-library`
 }
 
-group = "io.github.R2turnTrue"
+group = "io.github.r2turntrue"
 version = "0.1.2"
 
 val publishProps = Properties()
@@ -58,7 +58,7 @@ java {
 
 object Meta {
     val COMPONENT_TYPE = "java" // "java" or "versionCatalog"
-    val GROUP = "io.github.R2turnTrue"
+    val GROUP = "io.github.r2turntrue"
     val ARTIFACT_ID = "chzzk4j"
     val VERSION = "0.1.2"
     val PUBLISHING_TYPE = "AUTOMATIC" // USER_MANAGED or AUTOMATIC
