@@ -28,7 +28,8 @@ dependencies {
 Check at [our docs](https://r2turntrue.gitbook.io/chzzk4j)!
 
 ## examples
-### minimal chat example
+
+### minimal legacy chat example
 ```java
 ChzzkClient client = new ChzzkClientBuilder("API_CLIENT_ID", "API_SECRET")
         .build();
@@ -55,6 +56,69 @@ chat.on(ChatMessageEvent.class, (evt) -> {
 });
 
 chat.connectBlocking();
+```
+
+### session api example
+```java
+var adapter = new ChzzkOauthLoginAdapter(5000);
+var client = new ChzzkClientBuilder(apiClientId, apiSecret)
+        .withDebugMode()
+        .withLoginAdapter(adapter)
+        .build();
+
+System.out.println(adapter.getAccountInterlockUrl(apiClientId, false)); // Show Login URL
+
+client.loginAsync().join(); // Wait for the user to login by the interlock URL
+
+var session = new ChzzkSessionBuilder(client)
+        .buildUserSession();
+
+session.subscribeAsync(ChzzkSessionSubscriptionType.CHAT).join();
+
+session.on(SessionConnectedEvent.class, (event) -> {
+    System.out.println("Connected!");
+});
+
+session.on(SessionDisconnectedEvent.class, (event) -> {
+    System.out.println("Disconnected :(");
+});
+
+session.on(SessionChatMessageEvent.class, (event) -> {
+    var msg = event.getMessage();
+    System.out.printf("[CHAT] %s: %s [at %s]%n", msg.getProfile().getNickname(), msg.getContent(), msg.getMessageTime());
+});
+
+session.on(SessionRecreateEvent.class, (event) -> {
+    System.out.println("Recreating the session...");
+});
+
+session.on(SessionSubscribedEvent.class, (event) -> {
+    System.out.println("Yeah I subscribed to: " + event.getEventType());
+});
+
+session.on(SessionUnsubscribedEvent.class, (event) -> {
+    System.out.println("Yeah I unsubscribed to: " + event.getEventType());
+});
+
+session.createAndConnectAsync().join();
+```
+
+### modify chat settings example
+```java
+ChzzkChatSettings settings = client.fetchChatSettings().join();
+
+// 본인인증 여부 설정 조건을 변경합니다.
+settings.setChatAvailableCondition(ChzzkChatSettings.ChatAvailableCondition.REAL_NAME);
+
+// 채팅 참여 범위 설정 조건을 변경합니다.
+settings.setChatAvailableGroup(ChzzkChatSettings.ChatAvailableGroup.FOLLOWER);
+// (위 ChatAvailableGroup이 FOLLOWER일 경우) 최소 팔로잉 기간을 설정합니다.
+settings.setMinFollowerMinute(ChzzkChatSettings.MinFollowerMinute.M_60);
+// (위 ChatAvailableGroup이 FOLLOWER일 경우) 구독자는 최소 팔로잉 기간 조건 대상에서 제외/허용 할지 여부를 설정합니다.
+settings.setAllowSubscriberInFollowerMode(false);
+
+// 변경된 방송 설정을 서버에 전송합니다.
+client.modifyChatSettings(settings).join();
 ```
 
 ## features
