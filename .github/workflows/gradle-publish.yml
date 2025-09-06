@@ -34,6 +34,8 @@ jobs:
         echo -e "signing.secretKeyRingFile=secring.gpg" >> publish.properties
         echo -e "nexusUsername=$NEXUS_USERNAME" >> publish.properties
         echo -e "nexusPassword=$NEXUS_PASSWORD" >> publish.properties
+    - name: Import Key
+      run: gpg --import secring.gpg
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
