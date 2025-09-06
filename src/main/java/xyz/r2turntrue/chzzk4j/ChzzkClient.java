@@ -427,7 +427,6 @@ public class ChzzkClient {
      *
      * @param channelId ID of {@link ChzzkChannel} to get following status
      * @return user's {@link ChzzkChannelFollowingData} of the channel
-     * @throws IOException if the request to API failed
      * @throws NotLoggedInException if this {@link ChzzkClient} didn't log in
      */
     public CompletableFuture<ChzzkChannelFollowingData> fetchFollowingStatus(String channelId) throws NotLoggedInException, NoAccessTokenOnlySupported {
@@ -470,7 +469,6 @@ public class ChzzkClient {
      * Get {@link ChzzkRecommendationChannels}
      *
      * @return recommendation channels - {@link ChzzkRecommendationChannels}
-     * @throws IOException if the request to API failed
      */
     public CompletableFuture<ChzzkRecommendationChannels> fetchRecommendationChannels() throws NoAccessTokenOnlySupported, NotLoggedInException {
         if (isAnonymous) {
