@@ -36,6 +36,7 @@ jobs:
         echo -e "nexusUsername=$NEXUS_USERNAME" >> publish.properties
         echo -e "nexusPassword=$NEXUS_PASSWORD" >> publish.properties
     - name: Import Key
+      continue-on-error: true
       run: |
         export GPG_TTY=$(tty)
         gpg --import secring.gpg
