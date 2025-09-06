@@ -7,6 +7,7 @@ import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public class ChzzkPartialChannel {
     private String channelId;
@@ -21,11 +22,11 @@ public class ChzzkPartialChannel {
     /**
      * Get this channel's {@link ChzzkChannelRules}.
      *
-     * @return {@link ChzzkChannelRules} of the channel
+     * @return {@link CompletableFuture<ChzzkChannelRules>} of the channel
      * @throws IOException if the request to API failed
      * @throws NotExistsException if the channel doesn't exists or the rules of the channel doesn't available
      */
-    public ChzzkChannelRules getRules(ChzzkClient chzzk) throws IOException, NotExistsException {
+    public CompletableFuture<ChzzkChannelRules> getRules(ChzzkClient chzzk) throws IOException, NotExistsException {
         return chzzk.fetchChannelChatRules(channelId);
     }
 

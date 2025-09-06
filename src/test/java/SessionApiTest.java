@@ -31,6 +31,7 @@ public class SessionApiTest extends ChzzkTestBase {
 
         session.subscribeAsync(ChzzkSessionSubscriptionType.CHAT).join();
         session.subscribeAsync(ChzzkSessionSubscriptionType.DONATION).join();
+        session.subscribeAsync(ChzzkSessionSubscriptionType.CHANNEL_SUBSCRIBE).join();
 
         session.on(SessionConnectedEvent.class, (event) -> {
             System.out.println("Connected!");
@@ -48,6 +49,11 @@ public class SessionApiTest extends ChzzkTestBase {
         session.on(SessionDonationEvent.class, (event) -> {
             var msg = event.getMessage();
             System.out.printf("[DONATION] %s: %s [%s]%n", msg.getDonatorNickname(), msg.getDonationText(), msg.getDonationType());
+        });
+
+        session.on(SessionNewSubscriberEvent.class, (event) -> {
+            var msg = event.getMessage();
+            System.out.printf("[SUBSCRIBE] %s just subscribed!: %s", msg.getSubscriberNickname(), msg.toString());
         });
 
         session.on(SessionRecreateEvent.class, (event) -> {

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 public class ChzzkChat {
@@ -82,8 +83,8 @@ public class ChzzkChat {
     /**
      * Connects to the chat. This method blocks.
      */
-    public void connectBlocking() {
-        connectFromChannelId(channelId, autoReconnect).join();
+    public void connectBlocking() throws ExecutionException, InterruptedException {
+        connectFromChannelId(channelId, autoReconnect).get();
     }
 
     public void requestRecentChat(int chatCount) {
@@ -122,8 +123,8 @@ public class ChzzkChat {
                     throw new UnsupportedOperationException("Failed to fetch chatChannelId! (Try to put NID_SES/NID_AUT, because it's mostly caused by age restriction)");
                 }
 
-                connectFromChatId(channelId, chatIdRaw.getAsString(), autoReconnect).join();
-            } catch (IOException e) {
+                connectFromChatId(channelId, chatIdRaw.getAsString(), autoReconnect).get();
+            } catch (IOException | ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -147,9 +148,11 @@ public class ChzzkChat {
 
                 userId = "";
                 try {
-                    ChzzkUser user = chzzk.fetchLoggedUser();
+                    ChzzkUser user = chzzk.fetchLoggedUser().get();
                     userId = user.getUserId();
                 } catch (NotLoggedInException e) {
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
 
                 String accessTokenUrl = ChzzkClient.GAME_API_URL +
@@ -205,8 +208,8 @@ public class ChzzkChat {
         });
     }
 
-    public void reconnectSync() {
-        reconnectAsync().join();
+    public void reconnectSync() throws ExecutionException, InterruptedException {
+        reconnectAsync().get();
     }
 
     public CompletableFuture<Void> closeAsync() {
@@ -224,7 +227,7 @@ public class ChzzkChat {
         });
     }
 
-    public void closeBlocking() {
-        closeAsync().join();
+    public void closeBlocking() throws ExecutionException, InterruptedException {
+        closeAsync().get();
     }
 }
