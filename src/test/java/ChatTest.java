@@ -11,7 +11,8 @@ public class ChatTest extends ChzzkTestBase {
     @Test
     void testingChat() throws IOException, InterruptedException, ExecutionException {
         ChzzkChat chat = new ChzzkChatBuilder(chzzk,
-                "2086f44c7b09a17cef6786f21389db3b")
+                "36ddb9bb4f17593b60f1b63cec86611d")
+                .withAutoReconnect(true)
                 .build();
 
         chat.on(ConnectEvent.class, (evt) -> {
@@ -31,8 +32,24 @@ public class ChatTest extends ChzzkTestBase {
             System.out.println("[Chat] " + msg.getProfile().getNickname() + ": " + msg.getContent());
         });
 
+
+        chat.on(NormalDonationEvent.class, (evt) -> {
+            DonationMessage msg = evt.getMessage();
+
+            System.out.println(msg);
+
+            if (msg.getProfile() == null) {
+                System.out.println("[Donation] 익명: " + msg.getContent() + " - " + msg.getPayAmount());
+                return;
+            }
+
+            System.out.println("[Donation] " + msg.getProfile().getNickname() + ": " + msg.getContent() + " - " + msg.getPayAmount());
+        });
+
         chat.connectBlocking();
-        Thread.sleep(10000);
+
+        //chat.requestRecentChat(50);
+        Thread.sleep(100000000);
         chat.closeBlocking();
     }
 }

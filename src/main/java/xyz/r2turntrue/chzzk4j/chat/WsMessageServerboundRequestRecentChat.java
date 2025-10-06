@@ -9,6 +9,7 @@ class WsMessageServerboundRequestRecentChat extends WsMessageBase {
         public int recentMessageCount;
     }
 
+    //public String ver = "3";
     public WsMessageServerboundRequestRecentChat.Body bdy = new WsMessageServerboundRequestRecentChat.Body();
     public String sid;
     public int tid = 2;

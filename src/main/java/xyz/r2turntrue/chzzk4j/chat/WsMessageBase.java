@@ -3,7 +3,7 @@ package xyz.r2turntrue.chzzk4j.chat;
 class WsMessageBase {
     public String cid;
     public String svcid = "game";
-    public String ver = "2";
+    public String ver = "3";
     /**
      * * Note: only used in serverbound messages
      */
