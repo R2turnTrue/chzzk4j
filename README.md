@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
     implementation("io.github.R2turnTrue:chzzk4j:0.1.2")
+// temporally possible with implementation("io.github.r2turntrue:chzzk4j:0.1.3")
 }
 ```
 
