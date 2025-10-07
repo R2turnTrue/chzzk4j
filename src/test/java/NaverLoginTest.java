@@ -32,7 +32,7 @@ public class NaverLoginTest extends ChzzkTestBase {
                     .withLoginAdapter(adapter)
                     .build();
 
-            client.loginAsync().join();
+            client.loginAsync().get();
 
             System.out.println(client.fetchLoggedUser());
         });

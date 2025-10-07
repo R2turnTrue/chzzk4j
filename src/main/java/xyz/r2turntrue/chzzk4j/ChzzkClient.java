@@ -1,38 +1,38 @@
 package xyz.r2turntrue.chzzk4j;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRefreshRequestBody;
-import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRequestBody;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenResponseBody;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NotLoggedInException;
-import xyz.r2turntrue.chzzk4j.types.ChzzkFollowingStatusResponse;
-import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
-import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
-import xyz.r2turntrue.chzzk4j.types.channel.ChzzkPartialChannel;
+import xyz.r2turntrue.chzzk4j.types.*;
+import xyz.r2turntrue.chzzk4j.types.channel.*;
 import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
-import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollowingData;
-import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelRules;
 import xyz.r2turntrue.chzzk4j.types.channel.live.*;
 import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class ChzzkClient {
     public static String API_URL = "https://api.chzzk.naver.com";
@@ -44,6 +44,7 @@ public class ChzzkClient {
     private boolean isAnonymous;
     private boolean isLoggedIn;
     private boolean isOauthOnly;
+    private boolean isLegacyOnly;
 
     private String apiClientId;
     private String apiSecret;
@@ -64,6 +65,10 @@ public class ChzzkClient {
 
     public boolean hasApiKey() {
         return hasApiKey;
+    }
+
+    public Gson getGson() {
+        return gson;
     }
 
     private OkHttpClient.Builder buildHttp() {
@@ -123,7 +128,13 @@ public class ChzzkClient {
                 );
 
                 for (ChzzkLoginAdapter adapter : loginAdapters) {
-                    var result = adapter.authorize(this).join();
+                    ChzzkLoginResult result = null;
+                    try {
+                        result = adapter.authorize(this).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     if (result.accessToken() != null) {
                         finalResult._setAccessToken(result.accessToken());
                     }
@@ -167,6 +178,12 @@ public class ChzzkClient {
                 if (loginResult.accessToken() != null) {
                     httpBuilder.addInterceptor(chain -> {
                         Request original = chain.request();
+
+                        if (original.header("Not-Token-Api") != null) {
+                            return chain.proceed(original.newBuilder()
+                                    .removeHeader("Not-Token-Api")
+                                    .build());
+                        }
                         Request authorized = original.newBuilder()
                                 .addHeader("Authorization", "Bearer " + loginResult.accessToken())
                                 .build();
@@ -176,6 +193,7 @@ public class ChzzkClient {
                 }
 
                 isOauthOnly = loginResult.accessToken() != null && (loginResult.legacy_NID_AUT() == null || loginResult.legacy_NID_SES() == null);
+                isLegacyOnly = loginResult.accessToken() == null;
 
                 httpClient = httpBuilder.build();
             });
@@ -200,53 +218,149 @@ public class ChzzkClient {
      *
      * @param channelId ID of {@link ChzzkChannel} that to get.
      * @return {@link ChzzkChannel} to get
-     * @throws IOException if the request to API failed
-     * @throws ChannelNotExistsException if the channel doesn't exists
      */
-    public ChzzkChannel fetchChannel(String channelId) throws IOException, ChannelNotExistsException {
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId).build(),
-                isDebug);
+    public CompletableFuture<ChzzkChannel> fetchChannel(String channelId) {
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId).build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        ChzzkChannel channel = gson.fromJson(
-                contentJson,
-                ChzzkChannel.class);
-        if (channel.getChannelId() == null) {
-            throw new ChannelNotExistsException("The channel does not exists!");
-        }
+            ChzzkChannel channel = gson.fromJson(
+                    contentJson,
+                    ChzzkChannel.class);
+            if (channel.getChannelId() == null) {
+                try {
+                    throw new ChannelNotExistsException("The channel does not exists!");
+                } catch (ChannelNotExistsException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-        return channel;
+            return channel;
+        });
+    }
+
+    public @NotNull CompletableFuture<ChzzkChannelManager[]> fetchChannelManagers() throws NotLoggedInException, IllegalStateException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch channel managers without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch channel managers without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            JsonObject contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/users/me").build(),
+                        isDebug).getAsJsonObject();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (isDebug) System.out.println(gson.toJson(contentJson));
+
+            ChzzkChannelManager[] user = gson.fromJson(contentJson, ChzzkChannelManager[].class);
+
+            return user;
+        });
+    }
+
+    public @NotNull CompletableFuture<ChzzkChannelFollowerResponse> fetchChannelFollowers() throws NotLoggedInException, IllegalStateException {
+        return fetchChannelFollowers(0, 30);
+    }
+
+    public @NotNull CompletableFuture<ChzzkChannelSubscriberResponse> fetchChannelSubscribers() throws NotLoggedInException {
+        return fetchChannelSubscribers(0, 30, null);
+    }
+
+    public @NotNull CompletableFuture<ChzzkChannelFollowerResponse> fetchChannelFollowers(int page, int size) throws NotLoggedInException, IllegalStateException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch followers without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch followers without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            JsonObject contentJson = null;
+
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/channels/followers?page=" + page + "&size=" + size).build(),
+                        isDebug).getAsJsonObject();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (isDebug) System.out.println(gson.toJson(contentJson));
+
+            return gson.fromJson(contentJson, ChzzkChannelFollowerResponse.class);
+        });
+    }
+
+    public @NotNull CompletableFuture<ChzzkChannelSubscriberResponse> fetchChannelSubscribers(int page, int size, @Nullable ChzzkChannelSubscriber.SortBy sort) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch subscribers without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch subscribers without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            JsonObject contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/channels/subscribers?page=" + page + "&size=" + size +
+                                (sort == null ? "" : "&sort=" + sort)).build(),
+                        isDebug).getAsJsonObject();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (isDebug) System.out.println(gson.toJson(contentJson));
+
+            return gson.fromJson(contentJson, ChzzkChannelSubscriberResponse.class);
+        });
     }
 
     /**
      * Get {@link ChzzkLiveStatus} by the channel id.
      * @param channelId ID of {@link ChzzkChannel}
      * @return {@link ChzzkLiveStatus} of the channel
-     * @throws IOException if the request to API failed
      */
-    public @NotNull ChzzkLiveStatus fetchLiveStatus(@NotNull String channelId) throws IOException {
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/polling/v2/channels/" + channelId + "/live-status").build(),
-                isDebug);
+    public @NotNull CompletableFuture<ChzzkLiveStatus> fetchLiveStatus(@NotNull String channelId) {
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/polling/v2/channels/" + channelId + "/live-status").build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        return gson.fromJson(contentJson, ChzzkLiveStatus.class);
+            return gson.fromJson(contentJson, ChzzkLiveStatus.class);
+        });
     }
 
     /**
      * Get {@link ChzzkLiveDetail} by the channel id.
      * @param channelId ID of {@link ChzzkChannel}
      * @return {@link ChzzkLiveDetail} of the channel
-     * @throws IOException if the request to API failed
      */
-    public @NotNull ChzzkLiveDetail fetchLiveDetail(@NotNull String channelId) throws IOException {
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(),
-                isDebug);
+    public @NotNull CompletableFuture<ChzzkLiveDetail> fetchLiveDetail(@NotNull String channelId) {
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/service/v2/channels/" + channelId + "/live-detail").build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        return gson.fromJson(contentJson, ChzzkLiveDetail.class);
+            return gson.fromJson(contentJson, ChzzkLiveDetail.class);
+        });
     }
 
     /**
@@ -254,42 +368,58 @@ public class ChzzkClient {
      *
      * @param channelId ID of {@link ChzzkChannel}
      * @return {@link ChzzkChannelRules} of the channel
-     * @throws IOException        if the request to API failed
-     * @throws NotExistsException if the channel doesn't exists or the rules of the channel doesn't available
      */
-    public ChzzkChannelRules fetchChannelChatRules(String channelId) throws IOException, NotExistsException {
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/chat-rules").build(),
-                isDebug);
+    public CompletableFuture<ChzzkChannelRules> fetchChannelChatRules(String channelId) {
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/chat-rules").build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        ChzzkChannelRules rules = gson.fromJson(
-                contentJson,
-                ChzzkChannelRules.class);
+            ChzzkChannelRules rules = gson.fromJson(
+                    contentJson,
+                    ChzzkChannelRules.class);
 
-        if (rules.getUpdatedDate() == null) {
-            throw new NotExistsException("The channel or rules of the channel does not exists!");
-        }
+            if (rules.getUpdatedDate() == null) {
+                try {
+                    throw new NotExistsException("The channel or rules of the channel does not exists!");
+                } catch (NotExistsException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-        return rules;
+            return rules;
+        });
     }
 
-    public ChzzkChannelEmotePackData fetchChannelEmotePackData(String channelId) throws IOException {
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/emoji-packs").build(),
-                isDebug);
-        ChzzkChannelEmotePackData emoticons = null;
-        List<JsonElement> emoteElements =  contentJson.getAsJsonObject().asMap().get("subscriptionEmojiPacks").getAsJsonArray().asList();
-        for (JsonElement emoteElement : emoteElements) {
-            if (emoteElement.getAsJsonObject().asMap().get("emojiPackId").getAsString().equals("\""+channelId+ "\"")) {
-                continue;
+    public CompletableFuture<ChzzkChannelEmotePackData> fetchChannelEmotePackData(String channelId) {
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/emoji-packs").build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            emoticons= gson.fromJson(
-                    emoteElement,
-                    ChzzkChannelEmotePackData.class);
-        }
-        return emoticons;
+            ChzzkChannelEmotePackData emoticons = null;
+            List<JsonElement> emoteElements = contentJson.getAsJsonObject().asMap().get("subscriptionEmojiPacks").getAsJsonArray().asList();
+            for (JsonElement emoteElement : emoteElements) {
+                if (emoteElement.getAsJsonObject().asMap().get("emojiPackId").getAsString().equals("\"" + channelId + "\"")) {
+                    continue;
+                }
+                emoticons = gson.fromJson(
+                        emoteElement,
+                        ChzzkChannelEmotePackData.class);
+            }
+            return emoticons;
+        });
     }
 
     /**
@@ -297,11 +427,9 @@ public class ChzzkClient {
      *
      * @param channelId ID of {@link ChzzkChannel} to get following status
      * @return user's {@link ChzzkChannelFollowingData} of the channel
-     * @throws IOException if the request to API failed
      * @throws NotLoggedInException if this {@link ChzzkClient} didn't log in
-     * @throws ChannelNotExistsException if the channel doesn't exists
      */
-    public ChzzkChannelFollowingData fetchFollowingStatus(String channelId) throws IOException, NotLoggedInException, ChannelNotExistsException, NoAccessTokenOnlySupported {
+    public CompletableFuture<ChzzkChannelFollowingData> fetchFollowingStatus(String channelId) throws NotLoggedInException, NoAccessTokenOnlySupported {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch following status without logging in!");
         }
@@ -310,29 +438,39 @@ public class ChzzkClient {
             throw new NoAccessTokenOnlySupported("You should use legacy login adapter to fetch following status! Sorry :(");
         }
 
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/follow").build(),
-                isDebug);
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/" + channelId + "/follow").build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        ChzzkFollowingStatusResponse followingDataResponse = gson.fromJson(
-                contentJson,
-                ChzzkFollowingStatusResponse.class);
+            ChzzkFollowingStatusResponse followingDataResponse = gson.fromJson(
+                    contentJson,
+                    ChzzkFollowingStatusResponse.class);
 
-        if (followingDataResponse.channel.getChannelId() == null) {
-            throw new NotExistsException("The channel does not exists!");
-        }
+            if (followingDataResponse.channel.getChannelId() == null) {
+                try {
+                    throw new NotExistsException("The channel does not exists!");
+                } catch (NotExistsException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-        return followingDataResponse.channel.getPersonalData().getFollowing();
+            return followingDataResponse.channel.getPersonalData().getFollowing();
+        });
     }
 
     /**
      * Get {@link ChzzkRecommendationChannels}
      *
      * @return recommendation channels - {@link ChzzkRecommendationChannels}
-     * @throws IOException if the request to API failed
      */
-    public ChzzkRecommendationChannels fetchRecommendationChannels() throws IOException, NoAccessTokenOnlySupported, NotLoggedInException {
+    public CompletableFuture<ChzzkRecommendationChannels> fetchRecommendationChannels() throws NoAccessTokenOnlySupported, NotLoggedInException {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch recommendation channels without logging in!");
         }
@@ -341,16 +479,23 @@ public class ChzzkClient {
             throw new NoAccessTokenOnlySupported("You should use legacy login adapter to fetch recommendation channels! Sorry :(");
         }
 
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/home/recommendation-channels").build(),
-                isDebug);
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/service/v1/home/recommendation-channels").build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        ChzzkRecommendationChannels channels = gson.fromJson(
-                contentJson,
-                ChzzkRecommendationChannels.class);
+            ChzzkRecommendationChannels channels = gson.fromJson(
+                    contentJson,
+                    ChzzkRecommendationChannels.class);
 
-        return channels;
+            return channels;
+        });
     }
 
     /**
@@ -361,41 +506,55 @@ public class ChzzkClient {
      * @throws IOException if the request to API failed
      * @throws NotLoggedInException if this {@link ChzzkClient} didn't log in
      */
-    public ChzzkUser fetchLoggedUser() throws IOException, NotLoggedInException {
+    public CompletableFuture<ChzzkUser> fetchLoggedUser() throws IOException, NotLoggedInException {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch information of logged user without logging in!");
         }
 
         if (isOauthOnly) {
-            JsonObject contentJson = RawApiUtils.getContentJson(
-                    httpClient,
-                    RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/users/me").build(),
-                    isDebug).getAsJsonObject();
+            return CompletableFuture.supplyAsync(() -> {
+                JsonObject contentJson = null;
+                try {
+                    contentJson = RawApiUtils.getContentJson(
+                            httpClient,
+                            RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/users/me").build(),
+                            isDebug).getAsJsonObject();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
-            if (isDebug) System.out.println(gson.toJson(contentJson));
+                if (isDebug) System.out.println(gson.toJson(contentJson));
 
-            ChzzkUser user = new ChzzkUser();
+                ChzzkUser user = new ChzzkUser();
 
-            user._setUserId(contentJson.get("channelId").getAsString());
-            user._setHasProfile(contentJson.has("nickname") && !contentJson.get("nickname").isJsonNull());
-            user._setNickname(contentJson.get("nickname").getAsString());
-            user._setLoggedIn(true);
+                user._setUserId(contentJson.get("channelId").getAsString());
+                user._setHasProfile(contentJson.has("nickname") && !contentJson.get("nickname").isJsonNull());
+                user._setNickname(contentJson.get("nickname").getAsString());
+                user._setLoggedIn(true);
 
-            return user;
+                return user;
+            });
         }
 
-        JsonElement contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(GAME_API_URL + "/v1/user/getUserStatus").build(),
-                isDebug);
+        return CompletableFuture.supplyAsync(() -> {
+            JsonElement contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(GAME_API_URL + "/v1/user/getUserStatus").build(),
+                        isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        ChzzkUser user = gson.fromJson(
-                contentJson,
-                ChzzkUser.class);
-        return user;
+            ChzzkUser user = gson.fromJson(
+                    contentJson,
+                    ChzzkUser.class);
+            return user;
+        });
     }
 
-    public ChzzkPartialChannel[] fetchFollowingChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
+    public CompletableFuture<ChzzkPartialChannel[]> fetchFollowingChannels() throws NotLoggedInException, NoAccessTokenOnlySupported {
         if (isAnonymous) {
             throw new NotLoggedInException("Can't fetch following channels without logging in!");
         }
@@ -404,18 +563,209 @@ public class ChzzkClient {
             throw new NoAccessTokenOnlySupported("You should use legacy login adapter to get following channels! Sorry :(");
         }
 
-        JsonObject contentJson = RawApiUtils.getContentJson(
-                httpClient,
-                RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/followings").build(),
-                isDebug).getAsJsonObject();
+        return CompletableFuture.supplyAsync(() -> {
+            JsonObject contentJson = null;
+            try {
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(API_URL + "/service/v1/channels/followings").build(),
+                        isDebug).getAsJsonObject();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        if (isDebug) System.out.println(gson.toJson(contentJson));
+            if (isDebug) System.out.println(gson.toJson(contentJson));
 
-        ChzzkFollowingStatusResponse[] response = gson.fromJson(
-                contentJson.get("followingList"),
-                ChzzkFollowingStatusResponse[].class);
+            ChzzkFollowingStatusResponse[] response = gson.fromJson(
+                    contentJson.get("followingList"),
+                    ChzzkFollowingStatusResponse[].class);
 
-        return Arrays.stream(response).map((resp) -> resp.channel).toArray(ChzzkPartialChannel[]::new);
+            return Arrays.stream(response).map((resp) -> resp.channel).toArray(ChzzkPartialChannel[]::new);
+        });
+    }
+
+    public CompletableFuture<String> sendChatToLoggedInChannel(String content) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't send chat without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't send chat without logging in with access token!");
+
+        var req = new JsonObject();
+        req.addProperty("message", content);
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var resp = RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/open/v1/chats/send",
+                        gson.toJson(req)).build(), isDebug);
+
+                return resp.getAsJsonObject().get("messageId").getAsString();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> setAnnouncementOfLoggedInChannel(String content) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't send announcement without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't set announcement without logging in with access token!");
+
+        var req = new JsonObject();
+        req.addProperty("message", content);
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/open/v1/chats/notice",
+                        gson.toJson(req)).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<String> fetchStreamKey() throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch stream key without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch stream key without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/streams/key")
+                        .build(), isDebug).getAsJsonObject()
+                        .get("streamKey")
+                        .getAsString();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkLiveSettings> fetchLiveSettings() throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch live settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch live settings without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return gson.fromJson(RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/lives/setting")
+                                .build(), isDebug), ChzzkLiveSettings.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> modifyLiveSettings(ChzzkLiveSettings settings) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't modify live settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't modify live settings without logging in with access token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPatchRequest(ChzzkClient.OPENAPI_URL + "/open/v1/lives/setting",
+                                gson.toJson(new ChzzkLiveSettings.ModifyRequest(settings)))
+                        .build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkLiveCategory[]> searchCategories(String query) throws NotLoggedInException {
+        return this.searchCategories(query, 20); // 문서에 명시된 기본 검색 카운트
+    }
+
+    public CompletableFuture<ChzzkLiveCategory[]> searchCategories(String query, int searchCount) {
+        if (!hasApiKey) throw new IllegalStateException("Can't search categories without the OpenAPI key!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return gson.fromJson(RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/categories/search?size=" + searchCount + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8))
+                                .addHeader("Not-Token-Api", "1")
+                        .build(), isDebug), ChzzkLiveCategory.SearchResponse.class).getData();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkChatSettings> fetchChatSettings() throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't fetch chat settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't fetch chat settings without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/chats/settings").build(), isDebug);
+
+                return gson.fromJson(elem, ChzzkChatSettings.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkChatSettings> modifyChatSettings(ChzzkChatSettings newSettings) throws NotLoggedInException {
+        if (!isLoggedIn) throw new NotLoggedInException("Can't modify chat settings without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't modify chat settings without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpPutRequest(
+                                ChzzkClient.OPENAPI_URL + "/open/v1/chats/settings",
+                                gson.toJson(newSettings)).build(), isDebug);
+
+                return gson.fromJson(elem, ChzzkChatSettings.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> restrictChannel(String targetChannelId) {
+        if (!isLoggedIn) throw new IllegalStateException("Can't restrict channel without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't restrict channel without logging in without access token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpPostRequest(
+                                ChzzkClient.OPENAPI_URL + "/open/v1/restrict-channels",
+                                gson.toJson(new RestrictChannelRequestBody(targetChannelId))).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> unrestrictChannel(String targetChannelId) {
+        if (!isLoggedIn) throw new IllegalStateException("Can't unrestrict channel without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't unrestrict channel without logging in without access token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpDeleteRequest(
+                                ChzzkClient.OPENAPI_URL + "/open/v1/restrict-channels",
+                                gson.toJson(new RestrictChannelRequestBody(targetChannelId))).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkRestrictedChannelResponse> fetchRestrictedChannels() {
+        return fetchRestrictedChannels(30, "");
+    }
+
+    public CompletableFuture<ChzzkRestrictedChannelResponse> fetchRestrictedChannels(int size, String next) {
+        if (!isLoggedIn) throw new IllegalStateException("Can't unrestrict channel without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't unrestrict channel without logging in without access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpGetRequest(
+                                ChzzkClient.OPENAPI_URL + "/open/v1/restrict-channels").build(), isDebug);
+                return gson.fromJson(elem, ChzzkRestrictedChannelResponse.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public CompletableFuture<Void> refreshTokenAsync() throws NotLoggedInException {

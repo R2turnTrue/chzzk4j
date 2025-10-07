@@ -10,7 +10,11 @@ chzzk4j의 `0.1.0` 버전에서는 많은 사항이 변경되었습니다. 이�
 
 `Chzzk` 클래스의 `getChannel`, `getLiveStatus` 등 정보를 받는 메서드의 이름의 `fetchChannel`, `fetchLiveStatus` 등으로 변경되었습니다.
 
-## 채팅
+## OpenAPI
+
+채팅, 로그인 등 다양한 부분에서 OpenAPI 지원이 추가되었습니다. 최대한 레거시 API 사용을 지양하고 OpenAPI를 활용한 코드로 대체해주세요.
+
+## (레거시) 채팅
 
 `Chzzk` 클래스의 `chat` 메서드가 사라지고, 채팅 이벤트 핸들링 방식이 변경되는 등 다양한 수정 사항이 있었습니다. 채팅 연동 부분은 [채팅 연결하기](ChatConnect.md), [채팅 메시지](ChatMessage.md) 등을 참고해 수정해주세요.
 

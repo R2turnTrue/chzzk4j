@@ -62,7 +62,7 @@ public class NaverAutologinAdapter implements ChzzkLoginAdapter {
                     }
                 }
 
-                System.out.println("NID_AUT: " + getCookie(Cookie.NID_AUT));
+                if (client.isDebug) System.out.println("NID_AUT: " + getCookie(Cookie.NID_AUT));
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

@@ -41,6 +41,10 @@ client.loginAsync().join();
 프로덕션 환경에서는 되도록이면 위의 '인증 코드를 기입하는 방식' 혹은 '인증 토큰을 직접 기입하는 방식'을 사용해주세요.
 {% endhint %}
 
+{% hint style="danger" %}
+해당 기능을 사용하기 위해서는 우선 **치지직 개발자 센터**에서 클라이언트의 Redirect URL을 `http://localhost:8080/oauth_callback` 으로 수정해주세요!
+{% endhint %}
+
 잠시 동안 HTTP 서버를 열어 인증 토큰을 얻는 방식입니다.
 
 ```java

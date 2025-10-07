@@ -7,9 +7,11 @@ import xyz.r2turntrue.chzzk4j.types.ChzzkUser;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Assertions;
+import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollower;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelFollowingData;
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannelRules;
 import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
@@ -33,7 +35,7 @@ public class ChannelApiTest extends ChzzkTestBase {
     void gettingNormalChannelInfo() throws IOException {
         AtomicReference<ChzzkChannel> channel = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() ->
-                channel.set(chzzk.fetchChannel(FOLLOWED_CHANNEL_2)));
+                channel.set(chzzk.fetchChannel(FOLLOWED_CHANNEL_2).get()));
 
         System.out.println(channel);
     }
@@ -49,7 +51,7 @@ public class ChannelApiTest extends ChzzkTestBase {
     void gettingNormalChannelRules() throws IOException {
         AtomicReference<ChzzkChannelRules> rule = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() ->
-                rule.set(chzzk.fetchChannelChatRules(FOLLOWED_CHANNEL_1)));
+                rule.set(chzzk.fetchChannelChatRules(FOLLOWED_CHANNEL_1).get()));
 
         System.out.println(rule);
     }
@@ -71,14 +73,14 @@ public class ChannelApiTest extends ChzzkTestBase {
     void gettingFollowStatus() throws IOException {
         AtomicReference<ChzzkChannelFollowingData> followingStatus = new AtomicReference<>();
         Assertions.assertDoesNotThrow(() ->
-                followingStatus.set(loginChzzk.fetchFollowingStatus(FOLLOWED_CHANNEL_1)));
+                followingStatus.set(loginChzzk.fetchFollowingStatus(FOLLOWED_CHANNEL_1).get()));
 
         System.out.println(followingStatus);
 
         Assertions.assertEquals(followingStatus.get().isFollowing(), true);
 
         Assertions.assertDoesNotThrow(() ->
-                followingStatus.set(loginChzzk.fetchFollowingStatus(UNFOLLOWED_CHANNEL)));
+                followingStatus.set(loginChzzk.fetchFollowingStatus(UNFOLLOWED_CHANNEL).get()));
 
         System.out.println(followingStatus);
 
@@ -86,15 +88,15 @@ public class ChannelApiTest extends ChzzkTestBase {
     }
 
     @Test
-    void gettingUserInfo() throws IOException, NotLoggedInException {
-        ChzzkUser currentUser = loginChzzk.fetchLoggedUser();
+    void gettingUserInfo() throws IOException, NotLoggedInException, ExecutionException, InterruptedException {
+        ChzzkUser currentUser = loginChzzk.fetchLoggedUser().get();
         System.out.println(currentUser);
         Assertions.assertEquals(currentUser.getUserId(), currentUserId);
     }
 
     @Test
-    void gettingRecommendationChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported {
-        ChzzkRecommendationChannels channels = loginChzzk.fetchRecommendationChannels();
+    void gettingRecommendationChannels() throws IOException, NotLoggedInException, NoAccessTokenOnlySupported, ExecutionException, InterruptedException {
+        ChzzkRecommendationChannels channels = loginChzzk.fetchRecommendationChannels().get();
         System.out.println(channels);
     }
 }

@@ -5,10 +5,11 @@ import xyz.r2turntrue.chzzk4j.chat.event.*;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class ChatTest extends ChzzkTestBase {
     @Test
-    void testingChat() throws IOException, InterruptedException {
+    void testingChat() throws IOException, InterruptedException, ExecutionException {
         ChzzkChat chat = new ChzzkChatBuilder(chzzk,
                 "2086f44c7b09a17cef6786f21389db3b")
                 .build();

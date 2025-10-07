@@ -35,7 +35,7 @@ public class BothLoginTest extends ChzzkTestBase {
             client.refreshTokenAsync().join();
 
             System.out.println(client.fetchLoggedUser());
-            System.out.println(Arrays.toString(client.fetchFollowingChannels()));
+            System.out.println(Arrays.toString(client.fetchFollowingChannels().get()));
         });
     }
 
