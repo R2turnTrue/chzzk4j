@@ -14,7 +14,7 @@ Unofficial Java API library of CHZZK (치지직, the video streaming service of 
 
 ## installation
 
-> **Warning**
+> [!Warning]
 > 0.1.1 이하의 경우, Group ID로 `io.github.R2turnTrue`를 사용해야 합니다! 대소문자를 구별하니 조심해주세요!
 
 ```kotlin
