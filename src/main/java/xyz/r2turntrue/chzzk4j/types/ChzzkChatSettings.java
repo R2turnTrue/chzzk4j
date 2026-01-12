@@ -58,14 +58,34 @@ public class ChzzkChatSettings {
     }
 
     public enum ChatSlowModeSec {
-        S_0,
-        S_3,
-        S_5,
-        S_10,
-        S_30,
-        S_60,
-        S_120,
-        S_300
+        S_0(0),
+        S_3(3),
+        S_5(5),
+        S_10(10),
+        S_30(30),
+        S_60(60),
+        S_120(120),
+        S_300(300);
+
+        private final int seconds;
+        private static final String ALLOWED_SECONDS_STRING = Arrays.stream(values()).mapToInt(ChatSlowModeSec::getSeconds).sorted().mapToObj(String::valueOf).collect(Collectors.joining(", "));
+
+        ChatSlowModeSec(int seconds) {
+            this.seconds = seconds;
+        }
+
+        public int getSeconds() {
+            return seconds;
+        }
+
+        public static ChatSlowModeSec fromSeconds(int seconds) {
+            for (ChatSlowModeSec value : values()) {
+                if (value.seconds == seconds) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid chatSlowModeSec value: " + seconds + ", Allowed values: " + ALLOWED_SECONDS_STRING);
+        }
     }
 
     private String chatAvailableCondition;
@@ -91,8 +111,8 @@ public class ChzzkChatSettings {
         return allowSubscriberInFollowerMode;
     }
 
-    public int getChatSlowModeSec() {
-        return chatSlowModeSec;
+    public ChatSlowModeSec getChatSlowModeSec() {
+        return ChatSlowModeSec.fromSeconds(chatSlowModeSec);
     }
 
     public boolean isChatEmojiMode() {
@@ -120,7 +140,7 @@ public class ChzzkChatSettings {
     }
 
     public void setChatSlowModeSec(ChatSlowModeSec sec) {
-        this.chatSlowModeSec = Integer.parseInt(sec.toString().replace("S_", ""));
+        this.chatSlowModeSec = sec.getSeconds();
     }
 
     @Override
