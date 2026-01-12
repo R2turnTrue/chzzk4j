@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "io.github.r2turntrue"
-version = "0.1.3"
+version = "0.1.5"
 
 val publishProps = Properties()
 publishProps.load(
