@@ -66,7 +66,17 @@ public class ChzzkOauthLoginAdapter implements ChzzkLoginAdapter {
     @Override
     public CompletableFuture<ChzzkLoginResult> authorize(ChzzkClient client) {
         return CompletableFuture.supplyAsync(() -> {
-            InetSocketAddress address = new InetSocketAddress(port);
+            int bindPort = port;
+            String bindPath = "/oauth_callback";
+            if (redirectUri != null) {
+                java.net.URI uri = java.net.URI.create(redirectUri);
+                bindPort = uri.getPort();
+                if (bindPort == -1)
+                    throw new RuntimeException("redirectUri must include port for authorize()");
+                bindPath = uri.getPath();
+            }
+
+            InetSocketAddress address = new InetSocketAddress(bindPort);
             HttpServer httpServer = null;
             try {
                 httpServer = HttpServer.create(address, 0);
@@ -77,7 +87,7 @@ public class ChzzkOauthLoginAdapter implements ChzzkLoginAdapter {
             CountDownLatch latch = new CountDownLatch(1);
 
             HttpServer finalHttpServer = httpServer;
-            httpServer.createContext("/oauth_callback", (exchange) -> {
+            httpServer.createContext(bindPath, (exchange) -> {
 
                 try {
                     Map<String, String> params = HttpUtils.queryToMap(exchange.getRequestURI().getQuery());
@@ -150,19 +160,32 @@ public class ChzzkOauthLoginAdapter implements ChzzkLoginAdapter {
         return getAccountInterlockUrl(clientId, redirectToHttps, "dummy");
     }
 
+    private String redirectUri = null;
+
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+    }
+
     public String getAccountInterlockUrl(String clientId, boolean redirectToHttps, String state) {
+        String redirect;
+        if (redirectUri != null) {
+            redirect = redirectUri;
+        } else {
+            redirect = (redirectToHttps ? "https://" : "http://") +
+                    redirectHost +
+                    ":" +
+                    port +
+                    "/oauth_callback";
+        }
         return "https://chzzk.naver.com/account-interlock" +
                 "?clientId=" +
                 clientId +
                 "&redirectUri=" +
                 URLEncoder.encode(
-                        (redirectToHttps ? "https://" : "http://") +
-                                redirectHost +
-                                ":" +
-                                port +
-                                "/oauth_callback",
+                        redirect,
                         StandardCharsets.UTF_8
-                ) +
+                )
+                +
                 "&state=" +
                 URLEncoder.encode(
                         state,
