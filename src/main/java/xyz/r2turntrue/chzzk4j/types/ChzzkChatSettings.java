@@ -23,7 +23,12 @@ public class ChzzkChatSettings {
         M_60,
         M_1440,
         M_10080,
-        M_43200
+        M_43200,
+        M_86400,
+        M_129600,
+        M_172800,
+        M_216000,
+        M_259200
     }
 
     public enum ChatSlowModeSec {
