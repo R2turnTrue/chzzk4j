@@ -22,6 +22,7 @@ import xyz.r2turntrue.chzzk4j.types.channel.*;
 import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 import xyz.r2turntrue.chzzk4j.types.channel.live.*;
 import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
+import xyz.r2turntrue.chzzk4j.types.session.ChzzkSessionInfo;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
@@ -869,6 +870,41 @@ public class ChzzkClient {
             this.isLoggedIn = false;
             this.loginResult = null;
             this.httpClient = buildHttp().build();
+        });
+    }
+
+    public CompletableFuture<ChzzkSessionInfo[]> fetchSessions() throws NotLoggedInException, IllegalStateException {
+        if (!isLoggedIn)
+            throw new NotLoggedInException("Can't fetch sessions without logging in!");
+        if (isLegacyOnly)
+            throw new IllegalStateException("Can't fetch sessions without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/sessions").build(), isDebug);
+                return gson.fromJson(elem.getAsJsonObject().get("data"), ChzzkSessionInfo[].class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkSessionInfo[]> fetchClientSessions() {
+        if (!hasApiKey)
+            throw new IllegalStateException("Can't fetch client sessions without the OpenAPI key!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/sessions/client")
+                                .addHeader("Not-Token-Api", "1")
+                                .build(),
+                        isDebug);
+                return gson.fromJson(elem.getAsJsonObject().get("data"), ChzzkSessionInfo[].class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
