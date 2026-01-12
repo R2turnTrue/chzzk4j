@@ -12,6 +12,7 @@ import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRefreshRequestBody;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenResponseBody;
+import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRevokeRequestBody;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
@@ -811,6 +812,37 @@ public class ChzzkClient {
                 throw new RuntimeException(e);
             }
 
+        });
+    }
+
+    public CompletableFuture<Void> revokeTokenAsync(String token, String tokenTypeHint) {
+        if (!hasApiKey) throw new IllegalStateException("The client should have api key to revoke token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/auth/v1/token/revoke",
+                                        gson.toJson(new TokenRevokeRequestBody(
+                                                apiClientId,
+                                                apiSecret,
+                                                token,
+                                                tokenTypeHint
+                                        ))).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> revokeCurrentToken() {
+        if (!isLoggedIn) throw new IllegalStateException("The client should be logged in to revoke current token!");
+
+        String tokenToDelete = loginResult.accessToken();
+        if (tokenToDelete == null) throw new IllegalStateException("The client should have access token to revoke it!");
+
+        return revokeTokenAsync(tokenToDelete, "access_token").thenRun(() -> {
+            this.isLoggedIn = false;
+            this.loginResult = null;
+            this.httpClient = buildHttp().build();
         });
     }
 
