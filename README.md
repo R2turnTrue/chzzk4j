@@ -15,7 +15,13 @@ Unofficial Java API library of CHZZK (치지직, the video streaming service of 
 ## installation
 
 > [!Warning]
-> 0.1.1 이하의 경우, Group ID로 `io.github.R2turnTrue`를 사용해야 합니다! 대소문자를 구별하니 조심해주세요!
+> ## `r2turntrue` != `R2turnTrue`
+> **Maven Central에서 `r2turntrue`와 `R2turnTrue`를 다르게 취급합니다!!**
+> ### 최신 버전을 사용한다면..
+> Group ID로 `io.github.r2turntrue`를 사용하세요!
+> 
+> ### 0.1.1 이하 구버전을 사용한다면..
+> 0.1.1 버전 **이하**의 경우, Group ID로 `io.github.R2turnTrue`를 사용해야 합니다.
 
 ```kotlin
 repositories {
@@ -23,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.r2turntrue:chzzk4j:0.1.3")
+    implementation("io.github.r2turntrue:chzzk4j:0.1.4")
 }
 ```
 
