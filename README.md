@@ -8,7 +8,6 @@
 [디스코드 서버](https://discord.gg/GgNXbzZeDk) /
 [SDK 문서](https://r2turntrue.gitbook.io/chzzk4j)
 
-Unofficial Java API library of CHZZK (치지직, the video streaming service of Naver)
 치지직의 비공식 Java SDK 라이브러리입니다.
 
 * 이 라이브러리는 아직 완성되지 않았습니다. 많은 풀 리퀘스트 부탁드립니다!!
