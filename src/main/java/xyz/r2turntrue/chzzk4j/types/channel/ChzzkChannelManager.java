@@ -12,7 +12,7 @@ public class ChzzkChannelManager {
 
     private String managerChannelId;
     private String managerChannelName;
-    private Role role;
+    private Role userRole;
     private String createdDate;
 
     public String getManagerChannelId() {
@@ -23,8 +23,8 @@ public class ChzzkChannelManager {
         return managerChannelName;
     }
 
-    public Role getRole() {
-        return role;
+    public Role getUserRole() {
+        return userRole;
     }
 
     public String getCreatedDate() {
@@ -36,12 +36,12 @@ public class ChzzkChannelManager {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChzzkChannelManager that = (ChzzkChannelManager) o;
-        return Objects.equals(managerChannelId, that.managerChannelId) && Objects.equals(managerChannelName, that.managerChannelName) && role == that.role && Objects.equals(createdDate, that.createdDate);
+        return Objects.equals(managerChannelId, that.managerChannelId) && Objects.equals(managerChannelName, that.managerChannelName) && userRole == that.userRole && Objects.equals(createdDate, that.createdDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(managerChannelId, managerChannelName, role, createdDate);
+        return Objects.hash(managerChannelId, managerChannelName, userRole, createdDate);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ChzzkChannelManager {
         return "ChzzkChannelManager{" +
                 "managerChannelId='" + managerChannelId + '\'' +
                 ", managerChannelName='" + managerChannelName + '\'' +
-                ", role=" + role +
+                ", userRole=" + userRole +
                 ", createdDate='" + createdDate + '\'' +
                 '}';
     }

@@ -1,6 +1,8 @@
 package xyz.r2turntrue.chzzk4j.types;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ChzzkChatSettings {
     public enum ChatAvailableCondition {
@@ -16,30 +18,74 @@ public class ChzzkChatSettings {
     }
 
     public enum MinFollowerMinute {
-        M_0,
-        M_5,
-        M_10,
-        M_30,
-        M_60,
-        M_1440,
-        M_10080,
-        M_43200,
-        M_86400,
-        M_129600,
-        M_172800,
-        M_216000,
-        M_259200
+        M_0(0),
+        M_5(5),
+        M_10(10),
+        M_30(30),
+        M_60(60),
+        M_1440(1440),
+        M_10080(10080),
+        M_43200(43200),
+        M_86400(86400),
+        M_129600(129600),
+        M_172800(172800),
+        M_216000(216000),
+        M_259200(259200);
+
+        private final int minutes;
+        private static final String ALLOWED_MINUTES_STRING = Arrays.stream(values()).mapToInt(MinFollowerMinute::getMinutes).sorted().mapToObj(String::valueOf).collect(Collectors.joining(", "));
+
+        MinFollowerMinute(int minutes) {
+            this.minutes = minutes;
+        }
+
+        public int getMinutes() {
+            return minutes;
+        }
+
+        public int getDays() {
+            return minutes / 1440;
+        }
+
+        public static MinFollowerMinute fromMinutes(int minutes) {
+            for (MinFollowerMinute value : values()) {
+                if (value.minutes == minutes) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid minFollowerMinute value: " + minutes + ". Allowed values: " + ALLOWED_MINUTES_STRING);
+        }
     }
 
     public enum ChatSlowModeSec {
-        S_0,
-        S_3,
-        S_5,
-        S_10,
-        S_30,
-        S_60,
-        S_120,
-        S_300
+        S_0(0),
+        S_3(3),
+        S_5(5),
+        S_10(10),
+        S_30(30),
+        S_60(60),
+        S_120(120),
+        S_300(300);
+
+        private final int seconds;
+        private static final String ALLOWED_SECONDS_STRING = Arrays.stream(values()).mapToInt(ChatSlowModeSec::getSeconds).sorted().mapToObj(String::valueOf).collect(Collectors.joining(", "));
+
+        ChatSlowModeSec(int seconds) {
+            this.seconds = seconds;
+        }
+
+        public int getSeconds() {
+            return seconds;
+        }
+
+        public static ChatSlowModeSec fromSeconds(int seconds) {
+            for (ChatSlowModeSec value : values()) {
+                if (value.seconds == seconds) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid chatSlowModeSec value: " + seconds + ", Allowed values: " + ALLOWED_SECONDS_STRING);
+        }
     }
 
     private String chatAvailableCondition;
@@ -58,15 +104,15 @@ public class ChzzkChatSettings {
     }
 
     public MinFollowerMinute getMinFollowerMinute() {
-        return MinFollowerMinute.valueOf("M_" + minFollowerMinute);
+        return MinFollowerMinute.fromMinutes(minFollowerMinute);
     }
 
     public boolean isAllowSubscriberInFollowerMode() {
         return allowSubscriberInFollowerMode;
     }
 
-    public int getChatSlowModeSec() {
-        return chatSlowModeSec;
+    public ChatSlowModeSec getChatSlowModeSec() {
+        return ChatSlowModeSec.fromSeconds(chatSlowModeSec);
     }
 
     public boolean isChatEmojiMode() {
@@ -82,7 +128,7 @@ public class ChzzkChatSettings {
     }
 
     public void setMinFollowerMinute(MinFollowerMinute minFollowerMinute) {
-        this.minFollowerMinute = Integer.parseInt(minFollowerMinute.toString().replace("M_", ""));
+        this.minFollowerMinute = minFollowerMinute.getMinutes();
     }
 
     public void setAllowSubscriberInFollowerMode(boolean allowSubscriberInFollowerMode) {
@@ -94,7 +140,7 @@ public class ChzzkChatSettings {
     }
 
     public void setChatSlowModeSec(ChatSlowModeSec sec) {
-        this.chatSlowModeSec = Integer.parseInt(sec.toString().replace("S_", ""));
+        this.chatSlowModeSec = sec.getSeconds();
     }
 
     @Override
@@ -104,6 +150,8 @@ public class ChzzkChatSettings {
                 ", chatAvailableGroup='" + chatAvailableGroup + '\'' +
                 ", minFollowerMinute=" + minFollowerMinute +
                 ", allowSubscriberInFollowerMode=" + allowSubscriberInFollowerMode +
+                ", chatSlowModeSec=" + chatSlowModeSec +
+                ", chatEmojiMode=" + chatEmojiMode +
                 '}';
     }
 
@@ -112,11 +160,11 @@ public class ChzzkChatSettings {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChzzkChatSettings that = (ChzzkChatSettings) o;
-        return minFollowerMinute == that.minFollowerMinute && allowSubscriberInFollowerMode == that.allowSubscriberInFollowerMode && Objects.equals(chatAvailableCondition, that.chatAvailableCondition) && Objects.equals(chatAvailableGroup, that.chatAvailableGroup);
+        return minFollowerMinute == that.minFollowerMinute && allowSubscriberInFollowerMode == that.allowSubscriberInFollowerMode && chatSlowModeSec == that.chatSlowModeSec && chatEmojiMode == that.chatEmojiMode && Objects.equals(chatAvailableCondition, that.chatAvailableCondition) && Objects.equals(chatAvailableGroup, that.chatAvailableGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(chatAvailableCondition, chatAvailableGroup, minFollowerMinute, allowSubscriberInFollowerMode);
+        return Objects.hash(chatAvailableCondition, chatAvailableGroup, minFollowerMinute, allowSubscriberInFollowerMode, chatSlowModeSec, chatEmojiMode);
     }
 }
