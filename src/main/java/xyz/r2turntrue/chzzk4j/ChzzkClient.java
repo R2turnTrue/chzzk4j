@@ -759,9 +759,11 @@ public class ChzzkClient {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                var elem = RawApiUtils.getContentJson(getHttpClient(),
-                        RawApiUtils.httpGetRequest(
-                                ChzzkClient.OPENAPI_URL + "/open/v1/restrict-channels").build(), isDebug);
+                String url = ChzzkClient.OPENAPI_URL + "/open/v1/restrict-channels?size=" + size;
+                if (next != null && !next.isEmpty()) {
+                    url += "&next=" + URLEncoder.encode(next, StandardCharsets.UTF_8);
+                }
+                var elem = RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(url).build(), isDebug);
                 return gson.fromJson(elem, ChzzkRestrictedChannelResponse.class);
             } catch (IOException e) {
                 throw new RuntimeException(e);
