@@ -150,6 +150,8 @@ public class ChzzkChatSettings {
                 ", chatAvailableGroup='" + chatAvailableGroup + '\'' +
                 ", minFollowerMinute=" + minFollowerMinute +
                 ", allowSubscriberInFollowerMode=" + allowSubscriberInFollowerMode +
+                ", chatSlowModeSec=" + chatSlowModeSec +
+                ", chatEmojiMode=" + chatEmojiMode +
                 '}';
     }
 
@@ -158,11 +160,11 @@ public class ChzzkChatSettings {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChzzkChatSettings that = (ChzzkChatSettings) o;
-        return minFollowerMinute == that.minFollowerMinute && allowSubscriberInFollowerMode == that.allowSubscriberInFollowerMode && Objects.equals(chatAvailableCondition, that.chatAvailableCondition) && Objects.equals(chatAvailableGroup, that.chatAvailableGroup);
+        return minFollowerMinute == that.minFollowerMinute && allowSubscriberInFollowerMode == that.allowSubscriberInFollowerMode && chatSlowModeSec == that.chatSlowModeSec && chatEmojiMode == that.chatEmojiMode && Objects.equals(chatAvailableCondition, that.chatAvailableCondition) && Objects.equals(chatAvailableGroup, that.chatAvailableGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(chatAvailableCondition, chatAvailableGroup, minFollowerMinute, allowSubscriberInFollowerMode);
+        return Objects.hash(chatAvailableCondition, chatAvailableGroup, minFollowerMinute, allowSubscriberInFollowerMode, chatSlowModeSec, chatEmojiMode);
     }
 }
