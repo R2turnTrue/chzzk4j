@@ -247,6 +247,30 @@ public class ChzzkClient {
         });
     }
 
+    /**
+     * Get multiple {@link ChzzkChannel}s by their IDs using the official OpenAPI.
+     *
+     * @param channelIds IDs of {@link ChzzkChannel} to get.
+     * @return {@link ChzzkChannel} array.
+     */
+    public CompletableFuture<ChzzkChannel[]> fetchChannels(String... channelIds) {
+        if (!hasApiKey) throw new IllegalStateException("Can't fetch channels without the OpenAPI key!");
+        return CompletableFuture.supplyAsync(() -> {
+            JsonObject contentJson = null;
+            try {
+                String idsParam = String.join(",", channelIds);
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/channels?channelIds=" + idsParam).addHeader("Not-Token-Api", "1").build(),
+                        isDebug).getAsJsonObject();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (isDebug) System.out.println(gson.toJson(contentJson));
+            return gson.fromJson(contentJson.get("data"), ChzzkChannel[].class);
+        });
+    }
+
     public @NotNull CompletableFuture<ChzzkChannelManager[]> fetchChannelManagers() throws NotLoggedInException, IllegalStateException {
         if (!isLoggedIn) throw new NotLoggedInException("Can't fetch channel managers without logging in!");
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch channel managers without logging in with access token!");
