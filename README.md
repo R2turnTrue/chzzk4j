@@ -4,15 +4,16 @@
 * **0.0.12 이하 버전을 사용하신다면, [과거 버전의 문서](https://github.com/R2turnTrue/chzzk4j/blob/2a5936c9570220957c3ef4f13462d12d4d19e4ff/README.md) 파일을 확인해주세요!**
 
 ![](https://img.shields.io/maven-central/v/io.github.R2turnTrue/chzzk4j) / 
-[Example Minecraft Plugin](https://github.com/R2turnTrue/chzzk4j_demo) / 
-[Discord Server](https://discord.gg/GgNXbzZeDk)
+[예시 마인크래프트 플러그인](https://github.com/R2turnTrue/chzzk4j_demo) / 
+[디스코드 서버](https://discord.gg/GgNXbzZeDk) /
+[SDK 문서](https://r2turntrue.gitbook.io/chzzk4j)
 
-Unofficial Java API library of CHZZK (치지직, the video streaming service of Naver)
+치지직의 비공식 Java SDK 라이브러리입니다.
 
-* This library is not completed. Please contribute a lot through Pull-Request!
-* Please feel free to create an issue if you have any problems!
+* 이 라이브러리는 아직 완성되지 않았습니다. 많은 풀 리퀘스트 부탁드립니다!!
+* 이슈가 생기면 언제나 깃허브 이슈로 알려주세요!
 
-## installation
+## 설치
 
 > [!Warning]
 > ## `r2turntrue` != `R2turnTrue`
@@ -33,12 +34,12 @@ dependencies {
 }
 ```
 
-## usage
-Check at [our docs](https://r2turntrue.gitbook.io/chzzk4j)!
+## 사용 방법
+[문서](https://r2turntrue.gitbook.io/chzzk4j)에서 확인하세요!
 
-## examples
+## 간단한 예제
 
-### minimal legacy chat example
+### 레거시 채팅 예제
 ```java
 ChzzkClient client = new ChzzkClientBuilder() // 레거시 챗은 비공개 API이기 때문에, API 키가 필요하지 않습니다.
         .build();
@@ -67,7 +68,7 @@ chat.on(ChatMessageEvent.class, (evt) -> {
 chat.connectBlocking();
 ```
 
-### session api example
+### OpenAPI 채팅 예제 (세션)
 ```java
 var adapter = new ChzzkOauthLoginAdapter(5000);
 var client = new ChzzkClientBuilder(apiClientId, apiSecret)
@@ -112,7 +113,7 @@ session.on(SessionUnsubscribedEvent.class, (event) -> {
 session.createAndConnectAsync().join();
 ```
 
-### modify chat settings example
+### 채팅 설정 바꾸기
 ```java
 ChzzkChatSettings settings = client.fetchChatSettings().join();
 
@@ -130,27 +131,27 @@ settings.setAllowSubscriberInFollowerMode(false);
 client.modifyChatSettings(settings).join();
 ```
 
-## features
+## 기능
 
-- [x] get channel information & rules
-- [x] get current user's information
-- [x] get channel followed status
-- [x] async chat integration (read/send)
-- [x] get recommendation channels
-- [x] fix invalid json (chat)
-- [x] load emoji pack
-- [x] get live status
-- [x] get live detail
+- [x] 채널 이름, 규칙 불러오기
+- [x] 현재 사용자의 정보 불러오기
+- [x] 채널 팔로잉 상태 불러오기
+- [x] 비동기 채팅 연동
+- [x] 추천 채널 받아오기
+- [x] 잘못된 JSON 고치기 (채팅)
+- [x] 이모지 팩 불러오기
+- [x] 실시간 상태 받아오기 (live status)
+- [x] 실시간 상태 받아오기 (live detail)
 
-### need to implement
+### 구현할 것들
 
-- [ ] write javadocs of all methods/classes/etc..
-- [ ] parse emoji from chat message
-- [ ] get following channels of user that logged in
-- [ ] get video information
-- [ ] get cheese ranking
+- [ ] 모든 메소드, 클래스 등등 Javadoc 완성하기
+- [ ] 채팅 메시지에서 이모지 파싱하기
+- [ ] 로그인된 유저의 팔로잉 목록 가져오기
+- [ ] 동영상 정보 가져오기
+- [ ] 치즈 후원 랭킹 가져오기
 
-### references
+### 참고 자료
 
 - [kimcore/chzzk](https://github.com/kimcore/chzzk)
 - [Chzzk Official API - Session Test Results](https://gist.github.com/fi-xz/69ce1f35ca1b2318a2b410c0d5757e0f#file-main-kt)
