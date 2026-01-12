@@ -87,6 +87,11 @@ public class ChzzkChat {
         connectFromChannelId(channelId, autoReconnect).get();
     }
 
+    /**
+     * @deprecated current not to be used because of some bugs; will be fixed someday?
+     * @param chatCount
+     */
+    @Deprecated
     public void requestRecentChat(int chatCount) {
         if (!isConnectedToWebsocket) {
             throw new IllegalStateException("Connect to request recent chats!");

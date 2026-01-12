@@ -12,6 +12,7 @@ import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginResult;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRefreshRequestBody;
 import xyz.r2turntrue.chzzk4j.auth.oauth.TokenResponseBody;
+import xyz.r2turntrue.chzzk4j.auth.oauth.TokenRevokeRequestBody;
 import xyz.r2turntrue.chzzk4j.exception.ChannelNotExistsException;
 import xyz.r2turntrue.chzzk4j.exception.NoAccessTokenOnlySupported;
 import xyz.r2turntrue.chzzk4j.exception.NotExistsException;
@@ -21,6 +22,7 @@ import xyz.r2turntrue.chzzk4j.types.channel.*;
 import xyz.r2turntrue.chzzk4j.types.channel.emoticon.ChzzkChannelEmotePackData;
 import xyz.r2turntrue.chzzk4j.types.channel.live.*;
 import xyz.r2turntrue.chzzk4j.types.channel.recommendation.ChzzkRecommendationChannels;
+import xyz.r2turntrue.chzzk4j.types.session.ChzzkSessionInfo;
 import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
@@ -246,6 +248,54 @@ public class ChzzkClient {
         });
     }
 
+    public CompletableFuture<ChzzkChannel[]> fetchChannels(String... channelIds) {
+        List<CompletableFuture<ChzzkChannel>> futures = new ArrayList<>();
+        for (String channelId : channelIds) {
+            futures.add(fetchChannel(channelId));
+        }
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .toArray(ChzzkChannel[]::new));
+    }
+
+    public CompletableFuture<ChzzkChannel> fetchChannelOpenApi(String channelId) {
+        return fetchChannelsOpenApi(channelId).thenApply(channels -> {
+            if (channels.length == 0) {
+                try {
+                    throw new ChannelNotExistsException("The channel does not exists!");
+                } catch (ChannelNotExistsException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return channels[0];
+        });
+    }
+
+    /**
+     * Get multiple {@link ChzzkChannel}s by their IDs using the official OpenAPI.
+     *
+     * @param channelIds IDs of {@link ChzzkChannel} to get.
+     * @return {@link ChzzkChannel} array.
+     */
+    public CompletableFuture<ChzzkChannel[]> fetchChannelsOpenApi(String... channelIds) {
+        if (!hasApiKey) throw new IllegalStateException("Can't fetch channels without the OpenAPI key!");
+        return CompletableFuture.supplyAsync(() -> {
+            JsonObject contentJson = null;
+            try {
+                String idsParam = String.join(",", channelIds);
+                contentJson = RawApiUtils.getContentJson(
+                        httpClient,
+                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/channels?channelIds=" + idsParam).addHeader("Not-Token-Api", "1").build(),
+                        isDebug).getAsJsonObject();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (isDebug) System.out.println(gson.toJson(contentJson));
+            return gson.fromJson(contentJson.get("data"), ChzzkChannel[].class);
+        });
+    }
+
     public @NotNull CompletableFuture<ChzzkChannelManager[]> fetchChannelManagers() throws NotLoggedInException, IllegalStateException {
         if (!isLoggedIn) throw new NotLoggedInException("Can't fetch channel managers without logging in!");
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch channel managers without logging in with access token!");
@@ -255,7 +305,7 @@ public class ChzzkClient {
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
-                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/users/me").build(),
+                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/channels/streaming-roles").build(),
                         isDebug).getAsJsonObject();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -263,7 +313,7 @@ public class ChzzkClient {
 
             if (isDebug) System.out.println(gson.toJson(contentJson));
 
-            ChzzkChannelManager[] user = gson.fromJson(contentJson, ChzzkChannelManager[].class);
+            ChzzkChannelManager[] user = gson.fromJson(contentJson.get("data"), ChzzkChannelManager[].class);
 
             return user;
         });
@@ -758,9 +808,11 @@ public class ChzzkClient {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                var elem = RawApiUtils.getContentJson(getHttpClient(),
-                        RawApiUtils.httpGetRequest(
-                                ChzzkClient.OPENAPI_URL + "/open/v1/restrict-channels").build(), isDebug);
+                String url = ChzzkClient.OPENAPI_URL + "/open/v1/restrict-channels?size=" + size;
+                if (next != null && !next.isEmpty()) {
+                    url += "&next=" + URLEncoder.encode(next, StandardCharsets.UTF_8);
+                }
+                var elem = RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpGetRequest(url).build(), isDebug);
                 return gson.fromJson(elem, ChzzkRestrictedChannelResponse.class);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -811,6 +863,80 @@ public class ChzzkClient {
                 throw new RuntimeException(e);
             }
 
+        });
+    }
+
+    public CompletableFuture<Void> revokeTokenAsync(String token, String tokenTypeHint) {
+        if (!hasApiKey) throw new IllegalStateException("The client should have api key to revoke token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/auth/v1/token/revoke",
+                                        gson.toJson(new TokenRevokeRequestBody(
+                                                apiClientId,
+                                                apiSecret,
+                                                token,
+                                                tokenTypeHint
+                                        ))).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> revokeTokenAsyncByAccessToken(String accessToken) {
+        return revokeTokenAsync(accessToken, "access_token");
+    }
+
+    public CompletableFuture<Void> revokeTokenAsyncByRefreshToken(String refreshToken) {
+        return revokeTokenAsync(refreshToken, "refresh_token");
+    }
+
+    public CompletableFuture<Void> revokeTokenAsync() {
+        if (!isLoggedIn) throw new IllegalStateException("The client should be logged in to revoke current token!");
+
+        String tokenToDelete = loginResult.accessToken();
+        if (tokenToDelete == null) throw new IllegalStateException("The client should have access token to revoke it!");
+
+        return revokeTokenAsyncByAccessToken(tokenToDelete).thenRun(() -> {
+            this.isLoggedIn = false;
+            this.loginResult = null;
+            this.httpClient = buildHttp().build();
+        });
+    }
+
+    public CompletableFuture<ChzzkSessionInfo[]> fetchSessions() throws NotLoggedInException, IllegalStateException {
+        if (!isLoggedIn)
+            throw new NotLoggedInException("Can't fetch sessions without logging in!");
+        if (isLegacyOnly)
+            throw new IllegalStateException("Can't fetch sessions without logging in with access token!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/sessions").build(), isDebug);
+                return gson.fromJson(elem.getAsJsonObject().get("data"), ChzzkSessionInfo[].class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<ChzzkSessionInfo[]> fetchClientSessions() {
+        if (!hasApiKey)
+            throw new IllegalStateException("Can't fetch client sessions without the OpenAPI key!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var elem = RawApiUtils.getContentJson(getHttpClient(),
+                        RawApiUtils.httpGetRequest(ChzzkClient.OPENAPI_URL + "/open/v1/sessions/client")
+                                .addHeader("Not-Token-Api", "1")
+                                .build(),
+                        isDebug);
+                return gson.fromJson(elem.getAsJsonObject().get("data"), ChzzkSessionInfo[].class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
