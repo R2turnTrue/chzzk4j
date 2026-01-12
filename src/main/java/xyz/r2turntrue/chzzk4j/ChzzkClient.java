@@ -248,13 +248,37 @@ public class ChzzkClient {
         });
     }
 
+    public CompletableFuture<ChzzkChannel[]> fetchChannels(String... channelIds) {
+        List<CompletableFuture<ChzzkChannel>> futures = new ArrayList<>();
+        for (String channelId : channelIds) {
+            futures.add(fetchChannel(channelId));
+        }
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .toArray(ChzzkChannel[]::new));
+    }
+
+    public CompletableFuture<ChzzkChannel> fetchChannelOpenApi(String channelId) {
+        return fetchChannelsOpenApi(channelId).thenApply(channels -> {
+            if (channels.length == 0) {
+                try {
+                    throw new ChannelNotExistsException("The channel does not exists!");
+                } catch (ChannelNotExistsException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return channels[0];
+        });
+    }
+
     /**
      * Get multiple {@link ChzzkChannel}s by their IDs using the official OpenAPI.
      *
      * @param channelIds IDs of {@link ChzzkChannel} to get.
      * @return {@link ChzzkChannel} array.
      */
-    public CompletableFuture<ChzzkChannel[]> fetchChannels(String... channelIds) {
+    public CompletableFuture<ChzzkChannel[]> fetchChannelsOpenApi(String... channelIds) {
         if (!hasApiKey) throw new IllegalStateException("Can't fetch channels without the OpenAPI key!");
         return CompletableFuture.supplyAsync(() -> {
             JsonObject contentJson = null;
@@ -860,13 +884,21 @@ public class ChzzkClient {
         });
     }
 
-    public CompletableFuture<Void> revokeCurrentToken() {
+    public CompletableFuture<Void> revokeTokenAsyncByAccessToken(String accessToken) {
+        return revokeTokenAsync(accessToken, "access_token");
+    }
+
+    public CompletableFuture<Void> revokeTokenAsyncByRefreshToken(String refreshToken) {
+        return revokeTokenAsync(refreshToken, "refresh_token");
+    }
+
+    public CompletableFuture<Void> revokeTokenAsync() {
         if (!isLoggedIn) throw new IllegalStateException("The client should be logged in to revoke current token!");
 
         String tokenToDelete = loginResult.accessToken();
         if (tokenToDelete == null) throw new IllegalStateException("The client should have access token to revoke it!");
 
-        return revokeTokenAsync(tokenToDelete, "access_token").thenRun(() -> {
+        return revokeTokenAsyncByAccessToken(tokenToDelete).thenRun(() -> {
             this.isLoggedIn = false;
             this.loginResult = null;
             this.httpClient = buildHttp().build();
