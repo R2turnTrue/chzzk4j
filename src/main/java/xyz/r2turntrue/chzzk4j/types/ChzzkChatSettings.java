@@ -1,6 +1,8 @@
 package xyz.r2turntrue.chzzk4j.types;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ChzzkChatSettings {
     public enum ChatAvailableCondition {
@@ -16,14 +18,43 @@ public class ChzzkChatSettings {
     }
 
     public enum MinFollowerMinute {
-        M_0,
-        M_5,
-        M_10,
-        M_30,
-        M_60,
-        M_1440,
-        M_10080,
-        M_43200
+        M_0(0),
+        M_5(5),
+        M_10(10),
+        M_30(30),
+        M_60(60),
+        M_1440(1440),
+        M_10080(10080),
+        M_43200(43200),
+        M_86400(86400),
+        M_129600(129600),
+        M_172800(172800),
+        M_216000(216000),
+        M_259200(259200);
+
+        private final int minutes;
+        private static final String ALLOWED_MINUTES_STRING = Arrays.stream(values()).mapToInt(MinFollowerMinute::getMinutes).sorted().mapToObj(String::valueOf).collect(Collectors.joining(", "));
+
+        MinFollowerMinute(int minutes) {
+            this.minutes = minutes;
+        }
+
+        public int getMinutes() {
+            return minutes;
+        }
+
+        public int getDays() {
+            return minutes / 1440;
+        }
+
+        public static MinFollowerMinute fromMinutes(int minutes) {
+            for (MinFollowerMinute value : values()) {
+                if (value.minutes == minutes) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid minFollowerMinute value: " + minutes + ". Allowed values: " + ALLOWED_MINUTES_STRING);
+        }
     }
 
     public enum ChatSlowModeSec {
@@ -53,7 +84,7 @@ public class ChzzkChatSettings {
     }
 
     public MinFollowerMinute getMinFollowerMinute() {
-        return MinFollowerMinute.valueOf("M_" + minFollowerMinute);
+        return MinFollowerMinute.fromMinutes(minFollowerMinute);
     }
 
     public boolean isAllowSubscriberInFollowerMode() {
@@ -77,7 +108,7 @@ public class ChzzkChatSettings {
     }
 
     public void setMinFollowerMinute(MinFollowerMinute minFollowerMinute) {
-        this.minFollowerMinute = Integer.parseInt(minFollowerMinute.toString().replace("M_", ""));
+        this.minFollowerMinute = minFollowerMinute.getMinutes();
     }
 
     public void setAllowSubscriberInFollowerMode(boolean allowSubscriberInFollowerMode) {
