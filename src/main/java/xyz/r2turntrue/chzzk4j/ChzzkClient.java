@@ -256,7 +256,7 @@ public class ChzzkClient {
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
-                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/users/me").build(),
+                        RawApiUtils.httpGetRequest(OPENAPI_URL + "/open/v1/channels/streaming-roles").build(),
                         isDebug).getAsJsonObject();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -264,7 +264,7 @@ public class ChzzkClient {
 
             if (isDebug) System.out.println(gson.toJson(contentJson));
 
-            ChzzkChannelManager[] user = gson.fromJson(contentJson, ChzzkChannelManager[].class);
+            ChzzkChannelManager[] user = gson.fromJson(contentJson.get("data"), ChzzkChannelManager[].class);
 
             return user;
         });
