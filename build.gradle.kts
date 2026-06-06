@@ -1,6 +1,3 @@
-import java.io.BufferedInputStream
-import java.io.InputStream
-import java.lang.IllegalStateException
 import java.util.Properties
 
 plugins {
