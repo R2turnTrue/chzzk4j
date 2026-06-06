@@ -281,7 +281,7 @@ public class ChzzkClient {
     public CompletableFuture<ChzzkChannel[]> fetchChannelsOpenApi(String... channelIds) {
         if (!hasApiKey) throw new IllegalStateException("Can't fetch channels without the OpenAPI key!");
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 String idsParam = String.join(",", channelIds);
                 contentJson = RawApiUtils.getContentJson(
@@ -301,7 +301,7 @@ public class ChzzkClient {
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch channel managers without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -332,7 +332,7 @@ public class ChzzkClient {
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch followers without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
 
             try {
                 contentJson = RawApiUtils.getContentJson(
@@ -354,7 +354,7 @@ public class ChzzkClient {
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch subscribers without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -378,7 +378,7 @@ public class ChzzkClient {
      */
     public @NotNull CompletableFuture<ChzzkLiveStatus> fetchLiveStatus(@NotNull String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -399,7 +399,7 @@ public class ChzzkClient {
      */
     public @NotNull CompletableFuture<ChzzkLiveDetail> fetchLiveDetail(@NotNull String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -421,7 +421,7 @@ public class ChzzkClient {
      */
     public CompletableFuture<ChzzkChannelRules> fetchChannelChatRules(String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -449,7 +449,7 @@ public class ChzzkClient {
 
     public CompletableFuture<ChzzkChannelEmotePackData> fetchChannelEmotePackData(String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -458,6 +458,7 @@ public class ChzzkClient {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+
             ChzzkChannelEmotePackData emoticons = null;
             List<JsonElement> emoteElements = contentJson.getAsJsonObject().asMap().get("subscriptionEmojiPacks").getAsJsonArray().asList();
             for (JsonElement emoteElement : emoteElements) {
@@ -489,7 +490,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -530,7 +531,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -563,7 +564,7 @@ public class ChzzkClient {
 
         if (isOauthOnly) {
             return CompletableFuture.supplyAsync(() -> {
-                JsonObject contentJson = null;
+                JsonObject contentJson;
                 try {
                     contentJson = RawApiUtils.getContentJson(
                             httpClient,
@@ -587,7 +588,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -614,7 +615,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -872,12 +873,12 @@ public class ChzzkClient {
         return CompletableFuture.runAsync(() -> {
             try {
                 RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/auth/v1/token/revoke",
-                                        gson.toJson(new TokenRevokeRequestBody(
-                                                apiClientId,
-                                                apiSecret,
-                                                token,
-                                                tokenTypeHint
-                                        ))).build(), isDebug);
+                        gson.toJson(new TokenRevokeRequestBody(
+                                apiClientId,
+                                apiSecret,
+                                token,
+                                tokenTypeHint
+                        ))).build(), isDebug);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
