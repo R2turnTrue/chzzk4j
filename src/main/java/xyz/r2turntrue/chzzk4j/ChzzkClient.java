@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
 
 public class ChzzkClient {
     public static final String API_URL = "https://api.chzzk.naver.com";
@@ -130,11 +130,11 @@ public class ChzzkClient {
                 );
 
                 for (ChzzkLoginAdapter adapter : loginAdapters) {
-                    ChzzkLoginResult result = null;
+                    ChzzkLoginResult result;
                     try {
-                        result = adapter.authorize(this).get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        throw new RuntimeException(e);
+                        result = adapter.authorize(this).join();
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
                     }
 
                     if (result.accessToken() != null) {
