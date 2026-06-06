@@ -22,7 +22,6 @@ import xyz.r2turntrue.chzzk4j.util.RawApiUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
