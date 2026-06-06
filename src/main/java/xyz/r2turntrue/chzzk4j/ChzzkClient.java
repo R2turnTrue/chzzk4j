@@ -460,19 +460,24 @@ public class ChzzkClient {
             }
 
             ChzzkChannelEmotePackData emoticons = null;
-            List<JsonElement> emoteElements = contentJson.getAsJsonObject().asMap().get("subscriptionEmojiPacks").getAsJsonArray().asList();
-            for (JsonElement emoteElement : emoteElements) {
-                if (emoteElement.getAsJsonObject().asMap().get("emojiPackId").getAsString().equals("\"" + channelId + "\"")) {
-                    continue;
-                }
-                emoticons = gson.fromJson(
-                        emoteElement,
-                        ChzzkChannelEmotePackData.class);
             if (contentJson != null && contentJson.isJsonObject()) {
                 var jsonObject = contentJson.getAsJsonObject();
                 if (jsonObject.has("subscriptionEmojiPacks")) {
                     var emoteElements = jsonObject.getAsJsonArray("subscriptionEmojiPacks");
 
+                    for (JsonElement emoteElement : emoteElements) {
+                        var elementObj = emoteElement.getAsJsonObject();
+                        if (!elementObj.has("emojiPackId")) continue;
+
+                        // getAsString()은 이미 따옴표가 제거된 상태이므로 직접 비교
+                        String emojiPackId = elementObj.get("emojiPackId").getAsString();
+
+                        if (emojiPackId.equals(channelId)) {
+                            // 일치하는 데이터를 찾았으므로 객체 변환 후 루프 탈출
+                            emoticons = gson.fromJson(emoteElement, ChzzkChannelEmotePackData.class);
+                            break;
+                        }
+                    }
                 }
             }
             return emoticons;
