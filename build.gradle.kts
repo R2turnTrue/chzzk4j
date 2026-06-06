@@ -13,15 +13,17 @@ group = "io.github.r2turntrue"
 version = "0.1.4"
 
 val publishProps = Properties()
-publishProps.load(
-    File("publish.properties").inputStream())
+val publishPropsFile = File("publish.properties")
+if (publishPropsFile.exists()) {
+    publishProps.load(publishPropsFile.inputStream())
+}
 
-ext["signing.keyId"] = publishProps["signing.keyId"]
-ext["signing.password"] = publishProps["signing.password"]
-ext["signing.secretKeyRingFile"] = publishProps["signing.secretKeyRingFile"]
+ext["signing.keyId"] = publishProps["signing.keyId"] ?: ""
+ext["signing.password"] = publishProps["signing.password"] ?: ""
+ext["signing.secretKeyRingFile"] = publishProps["signing.secretKeyRingFile"] ?: ""
 
-val sonatypeUsername = publishProps["nexusUsername"] as String
-val sonatypePassword = publishProps["nexusPassword"] as String
+val sonatypeUsername = (publishProps["nexusUsername"] as? String) ?: ""
+val sonatypePassword = (publishProps["nexusPassword"] as? String) ?: ""
 
 repositories {
     mavenCentral()
