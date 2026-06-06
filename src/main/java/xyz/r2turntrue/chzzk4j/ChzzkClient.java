@@ -37,9 +37,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ChzzkClient {
-    public static String API_URL = "https://api.chzzk.naver.com";
-    public static String GAME_API_URL = "https://comm-api.game.naver.com/nng_main";
-    public static String OPENAPI_URL = "https://openapi.chzzk.naver.com";
+    public static final String API_URL = "https://api.chzzk.naver.com";
+    public static final String GAME_API_URL = "https://comm-api.game.naver.com/nng_main";
+    public static final String OPENAPI_URL = "https://openapi.chzzk.naver.com";
 
     public boolean isDebug = false;
 
