@@ -468,6 +468,12 @@ public class ChzzkClient {
                 emoticons = gson.fromJson(
                         emoteElement,
                         ChzzkChannelEmotePackData.class);
+            if (contentJson != null && contentJson.isJsonObject()) {
+                var jsonObject = contentJson.getAsJsonObject();
+                if (jsonObject.has("subscriptionEmojiPacks")) {
+                    var emoteElements = jsonObject.getAsJsonArray("subscriptionEmojiPacks");
+
+                }
             }
             return emoticons;
         });
