@@ -24,9 +24,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
@@ -45,7 +46,7 @@ class ChzzkSession {
     protected String sessionCreateUrl = "/open/v1/sessions/auth";
     protected boolean userSession = false;
 
-    HashMap<Class<? extends SessionEvent>, ArrayList<Consumer<? extends SessionEvent>>> handlerMap = new HashMap<>();
+    ConcurrentHashMap<Class<? extends SessionEvent>, CopyOnWriteArrayList<Consumer<? extends SessionEvent>>> handlerMap = new ConcurrentHashMap<>();
 
     private ChzzkClient chzzk;
     private boolean autoRecreate = true;
@@ -53,8 +54,8 @@ class ChzzkSession {
     private boolean disconnectedForce = true;
     private String sessionKey = "";
 
-    private List<ChzzkSessionSubscriptionType> subscriptions = new ArrayList<>();
-    private List<ChzzkSessionSubscriptionType> appliedSubscriptions = new ArrayList<>();
+    private final List<ChzzkSessionSubscriptionType> subscriptions = new CopyOnWriteArrayList<>();
+    private final List<ChzzkSessionSubscriptionType> appliedSubscriptions = new CopyOnWriteArrayList<>();
 
     private Socket socket;
 
@@ -364,7 +365,7 @@ class ChzzkSession {
 
     public <T extends SessionEvent> void on(Class<T> clazz, Consumer<T> action) {
         if (!handlerMap.containsKey(clazz)) {
-            handlerMap.put(clazz, new ArrayList<>());
+            handlerMap.put(clazz, new CopyOnWriteArrayList<>());
         }
 
         handlerMap.get(clazz).add(action);
