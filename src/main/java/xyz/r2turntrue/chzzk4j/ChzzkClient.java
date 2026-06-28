@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class ChzzkClient {
     public static String API_URL = "https://api.chzzk.naver.com";
@@ -119,89 +118,75 @@ public class ChzzkClient {
     }
 
     public CompletableFuture<Void> loginAsync() {
-        if (!isAnonymous) {
-            return CompletableFuture.runAsync(() -> {
-                var finalResult = new ChzzkLoginResult(
-                        null,
-                        null,
-                        null,
-                        null,
-                        -1
-                );
-
-                for (ChzzkLoginAdapter adapter : loginAdapters) {
-                    ChzzkLoginResult result = null;
-                    try {
-                        result = adapter.authorize(this).get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    if (result.accessToken() != null) {
-                        finalResult._setAccessToken(result.accessToken());
-                    }
-
-                    if (result.refreshToken() != null) {
-                        finalResult._setRefreshToken(result.refreshToken());
-                    }
-
-                    if (result.legacy_NID_AUT() != null) {
-                        finalResult._setLegacy_NID_AUT(result.legacy_NID_AUT());
-                    }
-
-                    if (result.legacy_NID_SES() != null) {
-                        finalResult._setLegacy_NID_SES(result.legacy_NID_SES());
-                    }
-
-                    if (result.tokenExpiresIn() > 0) {
-                        finalResult._setTokenExpiresIn(result.tokenExpiresIn());
-                    }
-                }
-
-                //loginResult = loginAdapter.authorize(this).join();
-                loginResult = finalResult;
-                isLoggedIn = true;
-
-                OkHttpClient.Builder httpBuilder = buildHttp();
-
-                if (loginResult.legacy_NID_AUT() != null && loginResult.legacy_NID_SES() != null) {
-                    httpBuilder.addInterceptor(chain -> {
-                        Request original = chain.request();
-                        Request authorized = original.newBuilder()
-                                .addHeader("Cookie",
-                                        "NID_AUT=" + loginResult.legacy_NID_AUT() + "; " +
-                                                "NID_SES=" + loginResult.legacy_NID_SES())
-                                .build();
-
-                        return chain.proceed(authorized);
-                    });
-                }
-
-                if (loginResult.accessToken() != null) {
-                    httpBuilder.addInterceptor(chain -> {
-                        Request original = chain.request();
-
-                        if (original.header("Not-Token-Api") != null) {
-                            return chain.proceed(original.newBuilder()
-                                    .removeHeader("Not-Token-Api")
-                                    .build());
-                        }
-                        Request authorized = original.newBuilder()
-                                .addHeader("Authorization", "Bearer " + loginResult.accessToken())
-                                .build();
-
-                        return chain.proceed(authorized);
-                    });
-                }
-
-                isOauthOnly = loginResult.accessToken() != null && (loginResult.legacy_NID_AUT() == null || loginResult.legacy_NID_SES() == null);
-                isLegacyOnly = loginResult.accessToken() == null;
-
-                httpClient = httpBuilder.build();
-            });
-        } else {
+        if (isAnonymous) {
             throw new InvalidParameterException("The chzzk client doesn't have any login adapter!");
         }
+
+        var finalResult = new ChzzkLoginResult(null, null, null, null, -1);
+
+        CompletableFuture<ChzzkLoginResult> chain = CompletableFuture.completedFuture(finalResult);
+        for (ChzzkLoginAdapter adapter : loginAdapters) {
+            chain = chain.thenCompose(acc -> adapter.authorize(this).thenApply(result -> {
+                if (result.accessToken() != null) {
+                    acc._setAccessToken(result.accessToken());
+                }
+                if (result.refreshToken() != null) {
+                    acc._setRefreshToken(result.refreshToken());
+                }
+                if (result.legacy_NID_AUT() != null) {
+                    acc._setLegacy_NID_AUT(result.legacy_NID_AUT());
+                }
+                if (result.legacy_NID_SES() != null) {
+                    acc._setLegacy_NID_SES(result.legacy_NID_SES());
+                }
+                if (result.tokenExpiresIn() > 0) {
+                    acc._setTokenExpiresIn(result.tokenExpiresIn());
+                }
+                return acc;
+            }));
+        }
+
+        return chain.thenAccept(result -> {
+            loginResult = result;
+            isLoggedIn = true;
+
+            OkHttpClient.Builder httpBuilder = buildHttp();
+
+            if (loginResult.legacy_NID_AUT() != null && loginResult.legacy_NID_SES() != null) {
+                httpBuilder.addInterceptor(chain2 -> {
+                    Request original = chain2.request();
+                    Request authorized = original.newBuilder()
+                            .addHeader("Cookie",
+                                    "NID_AUT=" + loginResult.legacy_NID_AUT() + "; " +
+                                            "NID_SES=" + loginResult.legacy_NID_SES())
+                            .build();
+
+                    return chain2.proceed(authorized);
+                });
+            }
+
+            if (loginResult.accessToken() != null) {
+                httpBuilder.addInterceptor(chain2 -> {
+                    Request original = chain2.request();
+
+                    if (original.header("Not-Token-Api") != null) {
+                        return chain2.proceed(original.newBuilder()
+                                .removeHeader("Not-Token-Api")
+                                .build());
+                    }
+                    Request authorized = original.newBuilder()
+                            .addHeader("Authorization", "Bearer " + loginResult.accessToken())
+                            .build();
+
+                    return chain2.proceed(authorized);
+                });
+            }
+
+            isOauthOnly = loginResult.accessToken() != null && (loginResult.legacy_NID_AUT() == null || loginResult.legacy_NID_SES() == null);
+            isLegacyOnly = loginResult.accessToken() == null;
+
+            httpClient = httpBuilder.build();
+        });
     }
 
     /**
@@ -223,7 +208,7 @@ public class ChzzkClient {
      */
     public CompletableFuture<ChzzkChannel> fetchChannel(String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -301,7 +286,7 @@ public class ChzzkClient {
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch channel managers without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -332,7 +317,7 @@ public class ChzzkClient {
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch followers without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
 
             try {
                 contentJson = RawApiUtils.getContentJson(
@@ -354,7 +339,7 @@ public class ChzzkClient {
         if (isLegacyOnly) throw new IllegalStateException("Can't fetch subscribers without logging in with access token!");
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -378,7 +363,7 @@ public class ChzzkClient {
      */
     public @NotNull CompletableFuture<ChzzkLiveStatus> fetchLiveStatus(@NotNull String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -399,7 +384,7 @@ public class ChzzkClient {
      */
     public @NotNull CompletableFuture<ChzzkLiveDetail> fetchLiveDetail(@NotNull String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -421,7 +406,7 @@ public class ChzzkClient {
      */
     public CompletableFuture<ChzzkChannelRules> fetchChannelChatRules(String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -449,7 +434,7 @@ public class ChzzkClient {
 
     public CompletableFuture<ChzzkChannelEmotePackData> fetchChannelEmotePackData(String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -489,7 +474,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -530,7 +515,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -563,7 +548,7 @@ public class ChzzkClient {
 
         if (isOauthOnly) {
             return CompletableFuture.supplyAsync(() -> {
-                JsonObject contentJson = null;
+                JsonObject contentJson;
                 try {
                     contentJson = RawApiUtils.getContentJson(
                             httpClient,
@@ -587,7 +572,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
@@ -614,7 +599,7 @@ public class ChzzkClient {
         }
 
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
