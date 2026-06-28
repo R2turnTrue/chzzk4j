@@ -1,9 +1,11 @@
+import org.junit.jupiter.api.Assumptions;
 import xyz.r2turntrue.chzzk4j.ChzzkClient;
 import xyz.r2turntrue.chzzk4j.ChzzkClientBuilder;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLegacyLoginAdapter;
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLoginAdapter;
 import xyz.r2turntrue.chzzk4j.naver.NaverAutologinAdapter;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -22,6 +24,7 @@ public class ChzzkTestBase {
     }
 
     public ChzzkTestBase(boolean naverLogin) {
+        Assumptions.assumeTrue(new File("env.properties").exists(), "env.properties not found, skipping integration tests");
         try {
             properties.load(new FileInputStream("env.properties"));
         } catch (IOException e) {

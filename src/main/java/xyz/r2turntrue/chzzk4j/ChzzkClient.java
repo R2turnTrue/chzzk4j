@@ -34,11 +34,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 public class ChzzkClient {
-    public static String API_URL = "https://api.chzzk.naver.com";
-    public static String GAME_API_URL = "https://comm-api.game.naver.com/nng_main";
-    public static String OPENAPI_URL = "https://openapi.chzzk.naver.com";
+    public static final String API_URL = "https://api.chzzk.naver.com";
+    public static final String GAME_API_URL = "https://comm-api.game.naver.com/nng_main";
+    public static final String OPENAPI_URL = "https://openapi.chzzk.naver.com";
 
     public boolean isDebug = false;
 
@@ -118,9 +119,23 @@ public class ChzzkClient {
     }
 
     public CompletableFuture<Void> loginAsync() {
-        if (isAnonymous) {
-            throw new InvalidParameterException("The chzzk client doesn't have any login adapter!");
-        }
+        if (!isAnonymous) {
+            return CompletableFuture.runAsync(() -> {
+                var finalResult = new ChzzkLoginResult(
+                        null,
+                        null,
+                        null,
+                        null,
+                        -1
+                );
+
+                for (ChzzkLoginAdapter adapter : loginAdapters) {
+                    ChzzkLoginResult result;
+                    try {
+                        result = adapter.authorize(this).join();
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
 
         var finalResult = new ChzzkLoginResult(null, null, null, null, -1);
 
@@ -266,7 +281,7 @@ public class ChzzkClient {
     public CompletableFuture<ChzzkChannel[]> fetchChannelsOpenApi(String... channelIds) {
         if (!hasApiKey) throw new IllegalStateException("Can't fetch channels without the OpenAPI key!");
         return CompletableFuture.supplyAsync(() -> {
-            JsonObject contentJson = null;
+            JsonObject contentJson;
             try {
                 String idsParam = String.join(",", channelIds);
                 contentJson = RawApiUtils.getContentJson(
@@ -443,15 +458,27 @@ public class ChzzkClient {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+
             ChzzkChannelEmotePackData emoticons = null;
-            List<JsonElement> emoteElements = contentJson.getAsJsonObject().asMap().get("subscriptionEmojiPacks").getAsJsonArray().asList();
-            for (JsonElement emoteElement : emoteElements) {
-                if (emoteElement.getAsJsonObject().asMap().get("emojiPackId").getAsString().equals("\"" + channelId + "\"")) {
-                    continue;
+            if (contentJson != null && contentJson.isJsonObject()) {
+                var jsonObject = contentJson.getAsJsonObject();
+                if (jsonObject.has("subscriptionEmojiPacks")) {
+                    var emoteElements = jsonObject.getAsJsonArray("subscriptionEmojiPacks");
+
+                    for (JsonElement emoteElement : emoteElements) {
+                        var elementObj = emoteElement.getAsJsonObject();
+                        if (!elementObj.has("emojiPackId")) continue;
+
+                        // getAsString()은 이미 따옴표가 제거된 상태이므로 직접 비교
+                        String emojiPackId = elementObj.get("emojiPackId").getAsString();
+
+                        if (emojiPackId.equals(channelId)) {
+                            // 일치하는 데이터를 찾았으므로 객체 변환 후 루프 탈출
+                            emoticons = gson.fromJson(emoteElement, ChzzkChannelEmotePackData.class);
+                            break;
+                        }
+                    }
                 }
-                emoticons = gson.fromJson(
-                        emoteElement,
-                        ChzzkChannelEmotePackData.class);
             }
             return emoticons;
         });
@@ -857,12 +884,12 @@ public class ChzzkClient {
         return CompletableFuture.runAsync(() -> {
             try {
                 RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(ChzzkClient.OPENAPI_URL + "/auth/v1/token/revoke",
-                                        gson.toJson(new TokenRevokeRequestBody(
-                                                apiClientId,
-                                                apiSecret,
-                                                token,
-                                                tokenTypeHint
-                                        ))).build(), isDebug);
+                        gson.toJson(new TokenRevokeRequestBody(
+                                apiClientId,
+                                apiSecret,
+                                token,
+                                tokenTypeHint
+                        ))).build(), isDebug);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
