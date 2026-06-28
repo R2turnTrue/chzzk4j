@@ -1,9 +1,11 @@
 package xyz.r2turntrue.chzzk4j.chat;
 
+import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 public class ChatMessage {
@@ -14,9 +16,12 @@ public class ChatMessage {
         IOS
     }
 
+    /** A Chzzk emoji. {@code name} is the token referenced in content as {@code {:name:}}. */
+    public record Emoji(String name, String imageUrl) {}
+
     public static class Extras {
-        // todo: emoji parsing implementation
-        //public Emoji[] emojis;
+        // raw {"token": "url", ...}; exposed as List<Emoji> via getEmojis()
+        private JsonObject emojis;
 
         String donationType;
         String osType;
@@ -40,6 +45,14 @@ public class ChatMessage {
             return OsType.valueOf(osType);
         }
 
+        /** Emojis used in the message, or an empty list if none. */
+        public List<Emoji> getEmojis() {
+            if (emojis == null) return List.of();
+            return emojis.entrySet().stream()
+                    .map(e -> new Emoji(e.getKey(), e.getValue().getAsString()))
+                    .toList();
+        }
+
         public int getPayAmount() {
             return payAmount;
         }
@@ -56,6 +69,7 @@ public class ChatMessage {
         public String toString() {
             return "Extras{" +
                     "osType='" + osType + '\'' +
+                    ", emojis=" + getEmojis() +
                     ", payAmount=" + payAmount + '\'' +
                     ", month=" + month + '\'' +
                     ", tierName='" + tierName +
