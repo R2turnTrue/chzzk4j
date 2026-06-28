@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 public class ChzzkClient {
     public static final String API_URL = "https://api.chzzk.naver.com";
@@ -119,24 +118,6 @@ public class ChzzkClient {
     }
 
     public CompletableFuture<Void> loginAsync() {
-        if (!isAnonymous) {
-            return CompletableFuture.runAsync(() -> {
-                var finalResult = new ChzzkLoginResult(
-                        null,
-                        null,
-                        null,
-                        null,
-                        -1
-                );
-
-                for (ChzzkLoginAdapter adapter : loginAdapters) {
-                    ChzzkLoginResult result;
-                    try {
-                        result = adapter.authorize(this).join();
-                    } catch (Exception e) {
-                        throw new CompletionException(e);
-                    }
-
         var finalResult = new ChzzkLoginResult(null, null, null, null, -1);
 
         CompletableFuture<ChzzkLoginResult> chain = CompletableFuture.completedFuture(finalResult);
