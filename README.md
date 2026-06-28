@@ -1,12 +1,9 @@
 ![](image/banner.png)
 # chzzk4j
 
-* **0.0.12 이하 버전을 사용하신다면, [과거 버전의 문서](https://github.com/R2turnTrue/chzzk4j/blob/2a5936c9570220957c3ef4f13462d12d4d19e4ff/README.md) 파일을 확인해주세요!**
-
-![](https://img.shields.io/maven-central/v/io.github.r2turntrue/chzzk4j) / 
+[SDK 문서](https://r2turntrue.gitbook.io/chzzk4j) / ![](https://img.shields.io/maven-central/v/io.github.r2turntrue/chzzk4j) / 
 [예시 마인크래프트 플러그인](https://github.com/R2turnTrue/chzzk4j_demo) / 
-[디스코드 서버](https://discord.gg/GgNXbzZeDk) /
-[SDK 문서](https://r2turntrue.gitbook.io/chzzk4j)
+[디스코드 서버](https://discord.gg/GgNXbzZeDk)
 
 치지직의 비공식 Java SDK 라이브러리입니다.
 
@@ -30,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.r2turntrue:chzzk4j:0.1.4")
+    implementation("io.github.r2turntrue:chzzk4j:0.1.5")
 }
 ```
 
