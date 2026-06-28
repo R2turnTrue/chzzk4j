@@ -7,6 +7,9 @@ public class ClientboundSystemSubscribed {
     private String channelId;
 
     public ChzzkSessionSubscriptionType getEventType() {
+        if (eventType.equals("SUBSCRIPTION")) {
+            return ChzzkSessionSubscriptionType.CHANNEL_SUBSCRIBE;
+        }
         return ChzzkSessionSubscriptionType.valueOf(eventType);
     }
 
