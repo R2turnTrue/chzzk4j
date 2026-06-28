@@ -137,71 +137,71 @@ public class ChzzkClient {
                         throw new CompletionException(e);
                     }
 
-                    if (result.accessToken() != null) {
-                        finalResult._setAccessToken(result.accessToken());
-                    }
+        var finalResult = new ChzzkLoginResult(null, null, null, null, -1);
 
-                    if (result.refreshToken() != null) {
-                        finalResult._setRefreshToken(result.refreshToken());
-                    }
-
-                    if (result.legacy_NID_AUT() != null) {
-                        finalResult._setLegacy_NID_AUT(result.legacy_NID_AUT());
-                    }
-
-                    if (result.legacy_NID_SES() != null) {
-                        finalResult._setLegacy_NID_SES(result.legacy_NID_SES());
-                    }
-
-                    if (result.tokenExpiresIn() > 0) {
-                        finalResult._setTokenExpiresIn(result.tokenExpiresIn());
-                    }
+        CompletableFuture<ChzzkLoginResult> chain = CompletableFuture.completedFuture(finalResult);
+        for (ChzzkLoginAdapter adapter : loginAdapters) {
+            chain = chain.thenCompose(acc -> adapter.authorize(this).thenApply(result -> {
+                if (result.accessToken() != null) {
+                    acc._setAccessToken(result.accessToken());
                 }
-
-                //loginResult = loginAdapter.authorize(this).join();
-                loginResult = finalResult;
-                isLoggedIn = true;
-
-                OkHttpClient.Builder httpBuilder = buildHttp();
-
-                if (loginResult.legacy_NID_AUT() != null && loginResult.legacy_NID_SES() != null) {
-                    httpBuilder.addInterceptor(chain -> {
-                        Request original = chain.request();
-                        Request authorized = original.newBuilder()
-                                .addHeader("Cookie",
-                                        "NID_AUT=" + loginResult.legacy_NID_AUT() + "; " +
-                                                "NID_SES=" + loginResult.legacy_NID_SES())
-                                .build();
-
-                        return chain.proceed(authorized);
-                    });
+                if (result.refreshToken() != null) {
+                    acc._setRefreshToken(result.refreshToken());
                 }
-
-                if (loginResult.accessToken() != null) {
-                    httpBuilder.addInterceptor(chain -> {
-                        Request original = chain.request();
-
-                        if (original.header("Not-Token-Api") != null) {
-                            return chain.proceed(original.newBuilder()
-                                    .removeHeader("Not-Token-Api")
-                                    .build());
-                        }
-                        Request authorized = original.newBuilder()
-                                .addHeader("Authorization", "Bearer " + loginResult.accessToken())
-                                .build();
-
-                        return chain.proceed(authorized);
-                    });
+                if (result.legacy_NID_AUT() != null) {
+                    acc._setLegacy_NID_AUT(result.legacy_NID_AUT());
                 }
-
-                isOauthOnly = loginResult.accessToken() != null && (loginResult.legacy_NID_AUT() == null || loginResult.legacy_NID_SES() == null);
-                isLegacyOnly = loginResult.accessToken() == null;
-
-                httpClient = httpBuilder.build();
-            });
-        } else {
-            throw new InvalidParameterException("The chzzk client doesn't have any login adapter!");
+                if (result.legacy_NID_SES() != null) {
+                    acc._setLegacy_NID_SES(result.legacy_NID_SES());
+                }
+                if (result.tokenExpiresIn() > 0) {
+                    acc._setTokenExpiresIn(result.tokenExpiresIn());
+                }
+                return acc;
+            }));
         }
+
+        return chain.thenAccept(result -> {
+            loginResult = result;
+            isLoggedIn = true;
+
+            OkHttpClient.Builder httpBuilder = buildHttp();
+
+            if (loginResult.legacy_NID_AUT() != null && loginResult.legacy_NID_SES() != null) {
+                httpBuilder.addInterceptor(chain2 -> {
+                    Request original = chain2.request();
+                    Request authorized = original.newBuilder()
+                            .addHeader("Cookie",
+                                    "NID_AUT=" + loginResult.legacy_NID_AUT() + "; " +
+                                            "NID_SES=" + loginResult.legacy_NID_SES())
+                            .build();
+
+                    return chain2.proceed(authorized);
+                });
+            }
+
+            if (loginResult.accessToken() != null) {
+                httpBuilder.addInterceptor(chain2 -> {
+                    Request original = chain2.request();
+
+                    if (original.header("Not-Token-Api") != null) {
+                        return chain2.proceed(original.newBuilder()
+                                .removeHeader("Not-Token-Api")
+                                .build());
+                    }
+                    Request authorized = original.newBuilder()
+                            .addHeader("Authorization", "Bearer " + loginResult.accessToken())
+                            .build();
+
+                    return chain2.proceed(authorized);
+                });
+            }
+
+            isOauthOnly = loginResult.accessToken() != null && (loginResult.legacy_NID_AUT() == null || loginResult.legacy_NID_SES() == null);
+            isLegacyOnly = loginResult.accessToken() == null;
+
+            httpClient = httpBuilder.build();
+        });
     }
 
     /**
@@ -223,7 +223,7 @@ public class ChzzkClient {
      */
     public CompletableFuture<ChzzkChannel> fetchChannel(String channelId) {
         return CompletableFuture.supplyAsync(() -> {
-            JsonElement contentJson = null;
+            JsonElement contentJson;
             try {
                 contentJson = RawApiUtils.getContentJson(
                         httpClient,
