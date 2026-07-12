@@ -80,6 +80,7 @@ public class SessionChatMessage {
 
     private String channelId;
     private String senderChannelId;
+    private String chatChannelId;
 
     private Profile profile;
     private String content;
@@ -92,6 +93,10 @@ public class SessionChatMessage {
 
     public String getSenderChannelId() {
         return senderChannelId;
+    }
+
+    public String getChatChannelId() {
+        return chatChannelId;
     }
 
     public Profile getProfile() {
@@ -121,12 +126,12 @@ public class SessionChatMessage {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SessionChatMessage that = (SessionChatMessage) o;
-        return messageTime == that.messageTime && Objects.equals(channelId, that.channelId) && Objects.equals(senderChannelId, that.senderChannelId) && Objects.equals(profile, that.profile) && Objects.equals(content, that.content) && Objects.equals(emojis, that.emojis);
+        return messageTime == that.messageTime && Objects.equals(channelId, that.channelId) && Objects.equals(senderChannelId, that.senderChannelId) && Objects.equals(chatChannelId, that.chatChannelId) && Objects.equals(profile, that.profile) && Objects.equals(content, that.content) && Objects.equals(emojis, that.emojis);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(channelId, senderChannelId, profile, content, emojis, messageTime);
+        return Objects.hash(channelId, senderChannelId, chatChannelId, profile, content, emojis, messageTime);
     }
 
     @Override
@@ -134,6 +139,7 @@ public class SessionChatMessage {
         return "SessionChatMessage{" +
                 "channelId='" + channelId + '\'' +
                 ", senderChannelId='" + senderChannelId + '\'' +
+                ", chatChannelId='" + chatChannelId + '\'' +
                 ", profile=" + profile +
                 ", content='" + content + '\'' +
                 ", emojis=" + emojis +

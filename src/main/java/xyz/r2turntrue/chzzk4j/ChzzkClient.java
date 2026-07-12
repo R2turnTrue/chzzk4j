@@ -759,6 +759,50 @@ public class ChzzkClient {
         });
     }
 
+    public CompletableFuture<Void> blindMessage(String chatChannelId, long messageTime, String senderChannelId) {
+        if (!isLoggedIn) throw new IllegalStateException("Can't blind message without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't blind message without logging in without access token!");
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(
+                        ChzzkClient.OPENAPI_URL + "/open/v1/chats/blind-message",
+                        gson.toJson(new BlindMessageRequestBody(chatChannelId, messageTime, senderChannelId))).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> temporaryRestrict(String targetChannelId, String chatChannelId) {
+        if (!isLoggedIn) throw new IllegalStateException("Can't temporary restrict channel without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't temporary restrict channel without logging in without access token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpPostRequest(
+                        ChzzkClient.OPENAPI_URL + "/open/v1/temporary-restrict-channels",
+                        gson.toJson(new TemporaryRestrictChannelRequestBody(targetChannelId, chatChannelId))).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Void> removeTemporaryRestrict(String targetChannelId, String chatChannelId) {
+        if (!isLoggedIn) throw new IllegalStateException("Can't remove temporary restrict channel without logging in!");
+        if (isLegacyOnly) throw new IllegalStateException("Can't remove temporary restrict channel without logging in without access token!");
+
+        return CompletableFuture.runAsync(() -> {
+            try {
+                RawApiUtils.getContentJson(getHttpClient(), RawApiUtils.httpDeleteRequest(
+                        ChzzkClient.OPENAPI_URL + "/open/v1/temporary-restrict-channels",
+                        gson.toJson(new TemporaryRestrictChannelRequestBody(targetChannelId, chatChannelId))).build(), isDebug);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     public CompletableFuture<Void> restrictChannel(String targetChannelId) {
         if (!isLoggedIn) throw new IllegalStateException("Can't restrict channel without logging in!");
         if (isLegacyOnly) throw new IllegalStateException("Can't restrict channel without logging in without access token!");
