@@ -2,6 +2,7 @@ package xyz.r2turntrue.chzzk4j.util;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import okhttp3.*;
 
@@ -45,30 +46,36 @@ public class RawApiUtils {
     }
 
     public static JsonObject getRawJson(OkHttpClient httpClient, Request request, boolean isDebug) throws IOException {
-        Response response = httpClient.newCall(request).execute();
+        try (Response response = httpClient.newCall(request).execute()) {
 
-        if (response.isSuccessful()) {
             ResponseBody body = response.body();
-            assert body != null;
-            String bodyString = body.string();
-            //\System.out.println("BD: " + bodyString);
+            if (body == null) {
+                throw new IOException("Response body is null!");
+            }
 
-            return JsonParser.parseString(bodyString).getAsJsonObject();
-        } else {
-            System.err.println(response);
-            if (isDebug) {
-                ResponseBody body = response.body();
-                if (body != null) {
-                    String bodyString = body.string();
+            String bodyString = body.string();
+
+            if (!response.isSuccessful()) {
+                if (isDebug && !bodyString.isEmpty()) {
                     System.out.println("BD: " + bodyString);
                 }
+
+                if (response.code() == 403 || response.code() == 401) {
+                    throw new IllegalStateException("Unauthorized! Check the client is authorized or the authentication scopes!");
+                }
+
+                throw new IOException("Response was not successful! HTTP " + response.code() + " " + response.message());
             }
 
-            if (response.code() == 403 || response.code() == 401) {
-                throw new IllegalStateException("Unauthorized! Check the client is authorized or the authentication scopes!");
+            if (bodyString.isEmpty()) {
+                throw new IOException("Response body is empty!");
             }
 
-            throw new IOException("Response was not successful! Try to use debugMode to check response body!");
+            try {
+                return JsonParser.parseString(bodyString).getAsJsonObject();
+            } catch (JsonParseException | IllegalStateException e) {
+                throw new IOException("Failed to parse response as a JSON object.", e);
+            }
         }
     }
 

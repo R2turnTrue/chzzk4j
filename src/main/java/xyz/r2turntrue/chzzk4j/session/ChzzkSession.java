@@ -148,35 +148,32 @@ class ChzzkSession {
                 return;
             }
 
-            Response response = null;
-            try {
-                response = chzzk.getHttpClient().newCall(new Request.Builder()
-                        .url(ChzzkClient.OPENAPI_URL + subscriptionType.getSubscribeUrl() + "?sessionKey=" + sessionKey)
-                        .post(RequestBody.create("", MediaType.parse("application/json")))
-                        .build()).execute();
+            Request request = new Request.Builder()
+                    .url(ChzzkClient.OPENAPI_URL + subscriptionType.getSubscribeUrl() + "?sessionKey=" + sessionKey)
+                    .post(RequestBody.create("", MediaType.parse("application/json")))
+                    .build();
+
+            try (Response response = chzzk.getHttpClient().newCall(request).execute()) {
+                if (chzzk.isDebug) {
+                    System.out.println(response);
+                }
+
+                if (!response.isSuccessful()) {
+                    if (!userSession && response.code() == 401) {
+                        throw new IllegalStateException("This API requires the user session!");
+                    }
+
+                    String body = response.body() != null
+                            ? response.body().string()
+                            : "";
+
+                    throw new RuntimeException("Failed to subscribe to event: " + response.code() + " " + body);
+                }
+
+                appliedSubscriptions.add(subscriptionType);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Failed to subscribe to event", e);
             }
-
-            if (chzzk.isDebug) {
-                System.out.println(response);
-            }
-
-            if (response.code() != 200) {
-                if (!userSession && response.code() == 401) {
-                    throw new IllegalStateException("This API requires the user session!");
-                }
-
-                try {
-                    throw new RuntimeException("Failed to subscribe to event",
-                            new IOException(response.body().string()));
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to subscribe to event",
-                            new IOException(response.toString()));
-                }
-            }
-
-            appliedSubscriptions.add(subscriptionType);
         });
     }
 
@@ -190,35 +187,32 @@ class ChzzkSession {
                 return;
             }
 
-            Response response = null;
-            try {
-                response = chzzk.getHttpClient().newCall(new Request.Builder()
-                        .url(ChzzkClient.OPENAPI_URL + subscriptionType.getUnsubscribeUrl())
-                        .post(RequestBody.create("", MediaType.parse("application/json")))
-                        .build()).execute();
+            Request request = new Request.Builder()
+                    .url(ChzzkClient.OPENAPI_URL + subscriptionType.getUnsubscribeUrl())
+                    .post(RequestBody.create("", MediaType.parse("application/json")))
+                    .build();
+
+            try (Response response = chzzk.getHttpClient().newCall(request).execute()) {
+                if (chzzk.isDebug) {
+                    System.out.println(response);
+                }
+
+                if (!response.isSuccessful()) {
+                    if (!userSession && response.code() == 401) {
+                        throw new IllegalStateException("This API requires the user session!");
+                    }
+
+                    String body = response.body() != null
+                            ? response.body().string()
+                            : "";
+
+                    throw new RuntimeException("Failed to unsubscribe from event: " + response.code() + " " + body);
+                }
+
+                appliedSubscriptions.remove(subscriptionType);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Failed to unsubscribe from event", e);
             }
-
-            if (chzzk.isDebug) {
-                System.out.println(response);
-            }
-
-            if (response.code() != 200) {
-                if (!userSession && response.code() == 401) {
-                    throw new IllegalStateException("This API requires the user session!");
-                }
-
-                try {
-                    throw new RuntimeException("Failed to subscribe to event",
-                            new IOException(response.body().string()));
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to subscribe to event",
-                            new IOException(response.toString()));
-                }
-            }
-
-            appliedSubscriptions.remove(subscriptionType);
         });
     }
 
