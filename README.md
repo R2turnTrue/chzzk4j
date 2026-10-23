@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.r2turntrue:chzzk4j:0.1.6")
+    implementation("io.github.r2turntrue:chzzk4j:0.1.7")
 }
 ```
 
